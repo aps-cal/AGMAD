@@ -7,8 +7,6 @@
         <title>VUE Testing Page</title>
 
     </head>
-    
-
     <body><!-- Test Vue -->
         <div id="app">
             
