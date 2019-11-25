@@ -41,6 +41,11 @@ $app->singleton(
     App\Exceptions\Handler::class
 );
 
+/* Code added by APS 07 Nov 2019 for Oracle Driver 
+$app->withFacades();
+$app->withEloquent();
+$app->register(Yajra\Oci8\Oci8ServiceProvider::class);*/
+
 /*
 |--------------------------------------------------------------------------
 | Return The Application

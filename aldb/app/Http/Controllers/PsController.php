@@ -13,6 +13,7 @@ use App\Http\Middleware\PS\Assessments;
 use App\Http\Middleware\PS\Reports;
 use App\Http\Middleware\PS\Tutors;
 use App\Http\Middleware\PS\Values;
+use App\Http\Middleware\PS\Groups;
 
 
 class PsController extends Controller {
@@ -24,9 +25,9 @@ class PsController extends Controller {
     
     public function __construct(){
         // This appears to be being called from somewhere else?
-        //$this->middleware('SSO');
+        //$this->middleware('sso');
         
-       /* 
+        /*
         
         $this->middleware(function ($request, $next) {
             $this->userdata = WarwickSSO::userdata();
@@ -46,6 +47,25 @@ class PsController extends Controller {
         return view('testvue');
  
     }
+    
+    public function groups(Request $request) {
+        //Values::SetYear('2018');
+        //$year = Values::GetYear();
+        //$year = '2017';
+        //echo $year;
+        //$phase = Values::GetPhase();
+        //$group = '03';
+        $ModuleCode = 'ET751';
+        $AcademicYear = '18/19';
+        $groups = Groups::GetGroups($ModuleCode,$AcademicYear);
+        //$years = Values::GetYears();
+        //$groups = Values::GetGroups();
+        //echo serialize( $groups);
+        
+        return view('psassess')->with(['groups'=> $groups]);
+ 
+    } 
+   
     public function assess(Request $request) {
         Values::SetYear('2018');
         $year = Values::GetYear();

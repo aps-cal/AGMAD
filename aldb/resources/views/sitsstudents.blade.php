@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Pre-Sessional Assessment</title>
+        <title>SITS Students</title>
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
@@ -64,6 +64,48 @@
                 </div>
             @endif
             <div class="content">
+                <table border="1" >
+                    <tr>
+                        <th colspan=2>Year 
+                            <select name="Year" id="Year" class="Filter">
+                                @foreach($years as $yearitem) 
+                                <option
+                                    @if ($year == $yearitem->PS_Year)
+                                         Selected
+                                    @endif>{{$yearitem->PS_Year}}</option>
+                                @endforeach
+                            </select></th>
+                         <th>Family Name</th>
+                         <th>Family Name</th>
+                         <th>Family Name</th>
+                         <th>Family Name</th>
+                         <th>Family Name</th>
+                         <th>Family Name</th>
+                         <th>Family Name</th>
+                         <th>Family Name</th>
+                         <th>Family Name</th>
+                         
+                    </tr>
+                
+                
+                @foreach ($students as $student) 
+                    <tr>
+                        <td>{{$student->Student_No}}</td>
+                        <td>{{$student->First_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                        <td>{{$student->Family_Name}}</td>
+                          
+                    </tr>
+                    @endforeach
+                </table>     <br/>   
                 <!--<h1>Pre-sessional Assessment Entry</h1>-->
                 <table border="1" >
                     <tr>
@@ -110,6 +152,8 @@
                 .'AND Presessional_Year = :Presessional_Year '
                 .'ORDER BY Family_Name, First_Name', -->
 
+                    
+                    
                     @foreach ($assessments as $assessment) 
                     <tr>
                         <td>{{$assessment->Student_No}}</td>
