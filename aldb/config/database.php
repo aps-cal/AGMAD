@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+    'default' => env('DB_CONNECTION', 'mysql'), /* oracle */
 
     /*
     |--------------------------------------------------------------------------
@@ -76,9 +76,19 @@ return [
             'charset' => 'utf8',
             'prefix' => '',
         ],
-
-    ],
-
+        
+        'oracle' => [
+            'driver' => 'oci8',
+            'host' => '(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = sitspr.warwick.ac.uk)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=sitspr.warwick.ac.uk)))',
+            'port' => '1521',
+            'database' => 'sitspr.warwick.ac.uk',
+            'username' => 'CAL_APP',
+            'password' => 'frangotyohaz4',
+            'charset' => 'utf8',
+            'prefix' => '',
+        ],
+        
+    ], 
     /*
     |--------------------------------------------------------------------------
     | Migration Repository Table
