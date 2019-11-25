@@ -160,6 +160,11 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        
+        /* Oracle Driver - Added by APS 8 Nov 2019 */
+        Yajra\Oci8\Oci8ServiceProvider::class,
+        /* Auth0 Class - Added by APS 25 Nov 2019 */
+        Auth0\Login\LoginServiceProvider::class,
 
     ],
 
@@ -209,6 +214,8 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
+        // Added by APS - 25 November 2019
+        'Auth0' => Auth0\Login\Facade\Auth0::class,
 
     ],
 
