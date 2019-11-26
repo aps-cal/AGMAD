@@ -1,6 +1,6 @@
 <?php
 use App\Http\Middleware\WarwickSSO as sso;
-use App\Http\Middleware\WSSO as wsso;
+//use App\Http\Middleware\WSSO as wsso;
 /*
 |--------------------------------------------------------------------------
 | Web Routes 
@@ -11,14 +11,41 @@ use App\Http\Middleware\WSSO as wsso;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
+// Old Root Page - Now called directly
+Route::get('/laravel', function () {
+    return view('laravel');
+});
 Route::get('/', function () {
-    return view('welcome');
+    return view('aldbhome');
+});
+Route::get('/login', function () {
+    $LoginPage = 'https://websignon.warwick.ac.uk/origin/slogin?'
+              .'target=http://agmad.lnx.warwick.ac.uk/aldb/menu'
+              .'&providerId='
+              .'urn:troja.csv.warwick.ac.uk:mycal-online:service';  
+    //$target = $request->url(); //.$request->header('Path');
+    //$providerId = 'urn:troja.csv.warwick.ac.uk:mycal-online:service';
+    //$LoginPage = 'https://websignon.warwick.ac.uk/origin/slogin'
+    //            .'?target='.$target
+    //            .'&providerId='.$providerId;
+    return redirect($LoginPage);
+});
+Route::get('/logout', function () {
+    $Page = 'https://websignon.warwick.ac.uk/origin/logout?'
+              .'target=http://agmad.lnx.warwick.ac.uk/';  
+    return redirect($Page);
 });
 Route::get('/noaccess', function () {
     return view('noaccess');
 });
 
+//This route is temporary just for testing the view blade pages
+//Route::get('page','PageController@page');
+Route::get('page/{page}','PageController@page');
+
+Route::get('page/{$page}', function($page) {
+    return view($page);
+});
 
 //Auth::routes();
 
@@ -28,8 +55,12 @@ Route::get('/noaccess', function () {
 
 Route::get('/home', 'HomeController@index')->name('home');
 
+Route::group(['prefix' => 'aldb', 'middleware' => 'sso'], function(){  //  
+    Route::any('menu','AldbController@menu');
+});
+
 Route::group(['prefix' => 'ps', 'middleware' => 'sso'], function(){
-    Route::get('/','PsController@menu');// <-middleware('sso');  
+    Route::get('/','PsController@home');// <-middleware('sso');  
     Route::get('testVue','PsController@testVue');// <-middleware('sso');  
     Route::any('groups','PsController@groups');// <-middleware('sso');  
     Route::get('assess','PsController@assess');// <-middleware('sso');  
@@ -38,7 +69,7 @@ Route::group(['prefix' => 'ps', 'middleware' => 'sso'], function(){
     Route::get('mimictutor','PsController@mimictutor');
 });
 
-Route::group(['prefix' => 'sits', 'middleware' => 'App\Http\Middleware\WSSO'], function(){  // 
+Route::group(['prefix' => 'sits', 'middleware' => 'sso'], function(){  // 
     
     Route::any('groups','SitsController@groups');
     Route::get('students','SitsController@students');// <-middleware('sso');  

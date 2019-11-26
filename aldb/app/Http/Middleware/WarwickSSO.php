@@ -17,56 +17,28 @@ class WarwickSSO {
     //public $userdata;
      
     // A Closure is a simple function than can be passed like a variable
-    public function handle(Request $request, Closure $next){
-        
-
-        // TEMPORARY - Bypass System
-         //return $next($request);
-        //$wsos_api_key = '&wsos_api_key=f0b29422ccba737bf49724604580fbfe';
-        //echo $request;   
-        //return($request);
-        //if(isnull($request)){
-            //$request = Illuminate\Http\Request::capture();
-            $request = Request::capture();
-        //}
+    public function handle(Request $request, Closure $next){     
+        //$request = Request::capture();
         $userdata = array();
         //$userdata = ['id'=>'test', 'deptcode'=>'ET','warwickitsclass'=>'Staff'];
         $token = $request->cookie('WarwickSSO');
         //echo $token;
         $userdata = $this->getUser($token);                
-        $LoginPage = 'https://websignon.warwick.ac.uk/origin/slogin?'
-              .'target=http://agmad.lnx.warwick.ac.uk'
-              .'&providerID='
-              .'urn:troja.csv.warwick.ac.uk:mycal-online:service';  
-        $target = $request->url(); //.$request->header('Path');
-        $providerId = 'urn:troja.csv.warwick.ac.uk:mycal-online:service';
-        $LoginPage = 'https://websignon.warwick.ac.uk/origin/slogin'
-                .'?target='.$target
-                .'&providerId='.$providerId;
-               
+        
         //$userdata = $this->loaduser($request);    
         //$request->merge(compact('userdata'));
-        echo 'Welcome back <b>'.$userdata['firstname'].'</b>' ; //     .' &nbsp; &nbsp; [User:'.$userdata['id'].'/'.$userdata['user'].']';       
         //return back()->with('WARNING', 'Access is currently restricted to the developer');
     
         if(!isset($userdata['id']) && !isset($userdata['user'])) { 
-            //return redirect()->route('/home')->with('WARNING', 'You are not logged in with a valid Warwick ID');
+            return redirect('/')->with('WARNING', 'You are not logged in with a valid Warwick ID');
             //echo "<html><body><h2>You are not logged in with a valid Warwick ID</h2></body></html>";
-            return redirect($LoginPage);
-           
-      //  } elseif(!$userdata['user']=='XXelsiai' ) {
-      //      return redirect($LoginPage)->with('WARNING', 'Access is currently restricted to the developer');
-        } elseif(!(($userdata['deptcode']=='ET' ||  $userdata['deptcode']=='IN' ) && $userdata['warwickitsclass']=='Staff')) {
-            return back()->with('WARNING', 'You do not appear to be Applied Lingustics or ITS staff');
-            // Only allow staff from CAL or ITS to access aldb.warwick.ac.uk/jsonp
-            //echo "<html><body><h2>You do not appear to be Applied Lingustics or ITS staff</h2></body></html>";
-            //return redirect('/');
-            //return $next($request); // If theres nothing to record... don't
+            return redirect('/')->with('WARNING', 'You are not logged in with a valid Warwick ID');
+        } elseif(!$userdata['user']=='XXelsiai' ) {
+            return redirect('/')->with('WARNING', 'Access is currently restricted to the developer');    
+        } elseif(!(($userdata['deptcode']=='ET' ||  $userdata['deptcode']=='IN' ) && $userdata['warwickitsclass'])){
+           return redirect('/')->with('WARNING', 'You do not appear to be Applied Lingustics or ITS staff');
         }        
-//        if (Auth::guard($guard)->check()) {
-//            return redirect('/home');
-//        }   
-        
+        echo 'Welcome back <b>'.$userdata['firstname'].'</b>' ; //     .' &nbsp; &nbsp; [User:'.$userdata['id'].'/'.$userdata['user'].']';       
         
         // In this case the closure (alias function) $next was passed in then 
         // called by return with the $request opject as a parameter

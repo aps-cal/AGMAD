@@ -24,28 +24,9 @@ class PsController extends Controller {
     
     
     public function __construct(){
-        // This appears to be being called from somewhere else?
-        //$this->middleware('sso');
-        
-        /*
-        
-        $this->middleware(function ($request, $next) {
-            $this->userdata = WarwickSSO::userdata();
-            
-            //Auth::user();
-            //$this->signed_in = Auth::check();
-
-            //view()->share('signed_in', $this->signed_in);
-            //view()->share('user', $this->user);
-
-            return $next($request);
-        });    
-   */
     }
-    public function testVue(Request $request) {
-        
-        return view('testvue');
- 
+    public function home(Request $request){
+        return view('pshome');
     }
     
     public function groups(Request $request) {
