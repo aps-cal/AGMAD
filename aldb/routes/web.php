@@ -19,7 +19,7 @@ Route::get('/', function () {
     return view('aldbhome');
 });
 Route::get('/login', function () {
-    $LoginPage = 'https://websignon.warwick.ac.uk/origin/slogin?'
+    $Page = 'https://websignon.warwick.ac.uk/origin/slogin?'
               .'target=http://agmad.lnx.warwick.ac.uk/aldb/menu'
               .'&providerId='
               .'urn:troja.csv.warwick.ac.uk:mycal-online:service';  
@@ -28,7 +28,7 @@ Route::get('/login', function () {
     //$LoginPage = 'https://websignon.warwick.ac.uk/origin/slogin'
     //            .'?target='.$target
     //            .'&providerId='.$providerId;
-    return redirect($LoginPage);
+    return redirect($Page);
 });
 Route::get('/logout', function () {
     $Page = 'https://websignon.warwick.ac.uk/origin/logout?'

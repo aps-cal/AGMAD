@@ -8,12 +8,12 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 use Illuminate\Http\Request;
 
-//use App\Http\Middleware\WarwickSSO as SSO;
-//use App\Http\Middleware\PS\Assessments;
-//use App\Http\Middleware\PS\Reports;
-//use App\Http\Middleware\PS\Tutors;
-//use App\Http\Middleware\PS\Values;
-//use App\Http\Middleware\PS\Groups;
+use App\Http\Middleware\WarwickSSO as SSO;
+use App\Http\Middleware\PS\Assessments;
+use App\Http\Middleware\PS\Reports;
+use App\Http\Middleware\PS\Tutors;
+use App\Http\Middleware\PS\Values;
+use App\Http\Middleware\PS\Groups;
 
 
 class AldbController extends Controller {
