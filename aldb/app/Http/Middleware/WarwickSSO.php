@@ -17,18 +17,30 @@ class WarwickSSO {
     //public $userdata;
      
     // A Closure is a simple function than can be passed like a variable
-    public function handle(Request $request, Closure $next){     
+    public function handle(Request $request, Closure $next){  
+        
+        //echo 'Request is '.($request->secure()?'':'un'.'secure!<br/>') ;
+        echo 'Request is '.($request->server('HTTPS')=="off"?'':'un'.'secure!<br/>') ;
+        echo 'Has WarwickSSO Cookie: '.($request->hasCookie('WarwickSSO')?'Yes':'No').'<br/>';
+        echo 'dd($request->cookie());';
+        //dd($request->cookie());
+      //  echo 'All Input Data: '.print_r($request->all());
+        
+        
         //$request = Request::capture();
         $userdata = array();
         //$userdata = ['id'=>'test', 'deptcode'=>'ET','warwickitsclass'=>'Staff'];
         $token = $request->cookie('WarwickSSO');
         //echo $token;
-        $userdata = $this->getUser($token);                
-        
+        $userdata = $this->getUser($token);  
+        echo '$userdata' ;
+        //dd($request->cookie('WarwickSSO'));
+    //    echo 'All Input Data: '.print_r($userdata);
+     
         //$userdata = $this->loaduser($request);    
         //$request->merge(compact('userdata'));
         //return back()->with('WARNING', 'Access is currently restricted to the developer');
-    
+ /*   
         if(!isset($userdata['id']) && !isset($userdata['user'])) { 
             return redirect('/')->with('WARNING', 'You are not logged in with a valid Warwick ID');
             //echo "<html><body><h2>You are not logged in with a valid Warwick ID</h2></body></html>";
@@ -37,7 +49,9 @@ class WarwickSSO {
             return redirect('/')->with('WARNING', 'Access is currently restricted to the developer');    
         } elseif(!(($userdata['deptcode']=='ET' ||  $userdata['deptcode']=='IN' ) && $userdata['warwickitsclass'])){
            return redirect('/')->with('WARNING', 'You do not appear to be Applied Lingustics or ITS staff');
-        }        
+        } 
+ 
+    */    
         echo 'Welcome back <b>'.$userdata['firstname'].'</b>' ; //     .' &nbsp; &nbsp; [User:'.$userdata['id'].'/'.$userdata['user'].']';       
         
         // In this case the closure (alias function) $next was passed in then 

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Middleware\PS;
+namespace App\PS;
 
 use Illuminate\Cookie\Middleware\EncryptCookies as Middleware;
 
 Use \Illuminate\Support\Facades\DB;
 
-class Tutors extends Middleware {
+class Tutors  {
     /**
      * The names of the cookies that should not be encrypted.
      *

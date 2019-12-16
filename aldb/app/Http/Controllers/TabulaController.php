@@ -13,32 +13,26 @@ use App\SITS\Students;
 use App\PS\Groups;
 use App\PS\Values;
 
-class SitsController extends Controller {
+use App\Tabula\TabulaAPI;
+use App\Tabula\SmallGroupSet;
+use App\Tabula\SmallGroup;
+use App\Tabula\SmallGroupEvent;
+
+
+class TabulaController extends Controller {
     
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
     
-    private $userdata = null;
-    
-    
-    public function __construct(){
-        // This appears to be being called from somewhere else?
-        //$this->middleware('WSSO');
-        
-       /* 
-        
-        $this->middleware(function ($request, $next) {
-            $this->userdata = WarwickSSO::userdata();
-            
-            //Auth::user();
-            //$this->signed_in = Auth::check();
-
-            //view()->share('signed_in', $this->signed_in);
-            //view()->share('user', $this->user);
-
-            return $next($request);
-        });    
-   */
+    public function __construct(){   
     }
+    
+    public function GetSmallGroupSet(){
+        $smallGroupSet = new SmallGroupSet();
+        $smallGroupSet->RetrieveSet('ET751','18/19',null);
+    }
+    
+    
+    
 
     public function groups(Request $request) {
         Values::SetYear('2018');

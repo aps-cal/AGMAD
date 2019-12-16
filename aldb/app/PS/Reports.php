@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Middleware\PS;
+namespace App\PS;
 
 use Illuminate\Cookie\Middleware\EncryptCookies as Middleware;
 
 use \Illuminate\Support\Facades\DB;
 
-class Reports extends Middleware
+class Reports //extends Middleware
 {
     /**
      * The names of the cookies that should not be encrypted.
@@ -17,7 +17,7 @@ class Reports extends Middleware
         //
     ];
     
-    public function GetReports($Presessional_Year, $Group_No ) {
+    public static function GetReports($Presessional_Year, $Group_No ) {
         
         try {
             

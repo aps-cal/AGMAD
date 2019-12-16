@@ -1,0 +1,11 @@
+{
+    "name": "vendor/a-g-m-a-d",
+    "description": "Description of project AGMAD.",
+    "authors": [
+        {
+            "name": "elsiai",
+            "email": "your@email.here"
+        }
+    ],
+    "require": {}
+}

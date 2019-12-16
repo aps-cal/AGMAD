@@ -19,6 +19,34 @@
     </head>
     
 <?php
+use Illuminate\Html\HtmlFacade;
+use Illuminate\Html\FormFacade;
+/*
+        echo Form::open(array('url' => 'foo/bar'));
+            echo Form::text('username','Username');
+            echo '<br/>';
+            
+            echo Form::text('email', 'example@gmail.com');
+            echo '<br/>';
+     
+            echo Form::password('password');
+            echo '<br/>';
+            
+            echo Form::checkbox('name', 'value');
+            echo '<br/>';
+            
+            echo Form::radio('name', 'value');
+            echo '<br/>';
+            
+            echo Form::file('image');
+            echo '<br/>';
+            
+            echo Form::select('size', array('L' => 'Large', 'S' => 'Small'));
+            echo '<br/>';
+            
+            echo Form::submit('Click Me!');
+        echo Form::close();
+*/
    // $years =  ['2017','2018'];
    // $groups = ['01','02','03','04','05','06','07','02','03','01','02','03','01','02','03',];
     //$topics = ['TL','TR','TW','TS','CL','CR','CW','CS','PW','PS'];
@@ -27,6 +55,7 @@
                 'Classroom_listening', 'Classroom_Writing', 'Classroom_Reading', 'Presentation'];
     
     $grades = ['Dist.','Merit','Pass','Fail'];
+    /*
     $marks[0]= ['id'=>1000000,'first'=>'John','last'=>'Smith',
         'TL'=>'Dist.','TR'=>'Merit','TW'=>'Pass','TS'=>'Fail',
         'CL'=>'Dist.','CR'=>'Merit','CW'=>'Pass','CS'=>'Fail',
@@ -36,7 +65,7 @@
         'CL'=>'Dist.','CR'=>'Merit','CW'=>'Pass','CS'=>'Fail',
         'PW'=>'Dist.','PS'=>'Merit'];
     
-    
+    */
     /*
      * 
      * NOTE: There is currently no form tag in this HTML
@@ -45,30 +74,39 @@
      * 
      * 
      */
+    
+    
+    /*
+     * Useful Example Code 
+     * 
+     <select name="education[]" id="education" class="form-control sselecter  input-lg" multiple="true" data-placeholder="@lang('global.Select Level Education')"  required>
+    @foreach ($educations as $education)                                                    
+      <option value="{{ $education->translation_of}}"
+        @if(in_array($education->translation_of , old('education'))      
+             selected="selected"
+        @endif >{{ $education->name }}</option>
+    @endforeach
+    </select>
+     * 
+     */
 ?>
     <body>
         <div id="app">
                 <psmarks></psmarks>
         </div>
         <script type="text/javascript" src="ps/js/app.js"></script>
-        {{$assessments}}
+   
         <div class="flex-center position-ref full-height">
-            @if(Route::has('login'))
-                <div class="top-right links">
-                    @auth
-                        <a href="{{ url('/home') }}">Home</a>
-                    @else
-                        <a href="{{ route('login') }}">Login</a>
-                        <a href="{{ route('register') }}">Register</a>
-                    @endauth
-                </div>
-            @endif
+           
             <div class="content">
                 <!--<h1>Pre-sessional Assessment Entry</h1>-->
+                
+                 {{ Form::open(array('route' => 'ps.assess')) }}
+
                 <table border="1" >
                     <tr>
                         <th colspan=2>Year 
-                            <select name="Year" id="Year" class="Filter">
+                            <select name="Year" id="Year" class="Filter" onchange="this.form.submit();">
                                 @foreach($years as $yearitem) 
                                 <option
                                     @if ($year == $yearitem->PS_Year)
@@ -77,7 +115,8 @@
                                 @endforeach
                             </select></th>
                          <th>Group 
-                             <select name="Group" id="Group" class="Filter">
+            
+                             <select name="Group" id="Group" class="Filter" onchange="this.form.submit();">
                                 @foreach ($groups as $groupitem) 
                                 <option
                                     @if ($group == $groupitem->Group_No)
@@ -117,10 +156,10 @@
                           <td>{{$assessment->Family_Name}}</td>
                           @foreach ($topics as $topic)
                           <!-- NOTE Select objects need a unique name -->
-                          <td><select name='{{$topic.$mark['id']}}-{{$assessment->Student_No}}' class="Assess">
+                          <td><select name='{{$topic}}-{{$assessment->Student_No}}' class="Assess"> <!-- $mark['id']} -->
                                 @foreach ($grades as $grade) 
                                 <option 
-                                    @if ($grade == $assessment->$topic)
+                                    @if($grade == $assessment->$topic)
                                          Selected
                                     @endif
                                         >{{$grade}}</option>
@@ -151,7 +190,8 @@
                     <tr>
                         <th colspan='14'><textarea name='LNSReport' style="width:98%;" rows=4 maxlength=400 ></textarea></th>
                     </tr>-->
-                </table>            
+                </table>     
+                  {{ Form::close() }}
              </div>
         </div>
     </body>

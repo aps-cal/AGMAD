@@ -7,13 +7,14 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 use Illuminate\Http\Request;
+//use Illuminate\Support\facades\Input;
 
-//use App\Http\Middleware\WarwickSSO as SSO;
-use App\Http\Middleware\PS\Assessments;
-use App\Http\Middleware\PS\Reports;
-use App\Http\Middleware\PS\Tutors;
-use App\Http\Middleware\PS\Values;
-use App\Http\Middleware\PS\Groups;
+
+use App\PS\Assessments;
+use App\PS\Reports;
+use App\PS\Tutors;
+use App\PS\Values;
+use App\PS\Groups;
 
 
 class PsController extends Controller {
@@ -30,15 +31,15 @@ class PsController extends Controller {
     }
     
     public function groups(Request $request) {
-        //Values::SetYear('2018');
-        //$year = Values::GetYear();
-        //$year = '2017';
-        //echo $year;
-        //$phase = Values::GetPhase();
-        //$group = '03';
+        Values::SetYear('2018');
+        $year = Values::GetYear();
+        $year = '2017';
+        echo $year;
+        $phase = Values::GetPhase();
+        $group = '03';
         $ModuleCode = 'ET751';
-        $AcademicYear = '18/19';
-        $groups = Groups::GetGroups($ModuleCode,$AcademicYear);
+        $AcademicYear = '19/20';
+        $groups = Groups::GetTeachingGroups($ModuleCode,$AcademicYear);
         //$years = Values::GetYears();
         //$groups = Values::GetGroups();
         //echo serialize( $groups);
@@ -48,17 +49,39 @@ class PsController extends Controller {
     } 
    
     public function assess(Request $request) {
-        Values::SetYear('2018');
-        $year = Values::GetYear();
-        $year = '2017';
-        //echo $year;
-        $phase = Values::GetPhase();
-        $group = '03';
-        $assessments = Assessments::GetAssessments($year,$group);
+        // This needs to be removed once testing in complete
+        Values::SetYear('2017');
+        // Load Year for dropdown
         $years = Values::GetYears();
-        $groups = Values::GetGroups();
+        // Check for Year input
+        if(!($year = $request->input('Year'))) {
+           $year = Values::GetYear();
+        }
+        //Check year has data NB. This is a useful array function
+        if (!array_search($year, array_column($years,'PS_Year'))) {
+           $year = Values::GetYear();
+        }
+        // Load Groups for dropdown
+        $groups = Values::GetGroups($year);
+        // Check for Group Input
+        if(!($group = $request->input('Group'))) {
+           $group = '01';
+        }
+        // Check Year has Group
+        if (!array_search($group, array_column($groups,'Group_No'))) {
+        //if(!$groups->contains($group)){
+           $group = '01';
+        }
+        $assessments = Assessments::GetAssessments($year,$group);
         //echo serialize( $groups);
-        return view('psassess')->with(['assessments'=>$assessments, 'years'=> $years, 'groups'=> $groups, 'year'=> $year, 'group'=> $group]);
+        return view('psassess')
+            ->with([
+            'assessments'=>$assessments, 
+            'years'=> $years, 
+            'groups'=> $groups, 
+            'year'=> $year, 
+            'group'=> $group
+        ]);
  
     } 
     public function report(Request $request) {

@@ -6,7 +6,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies as Middleware;
 
 use \Illuminate\Support\Facades\DB;
 
-class Students extends Middleware
+class Students //extends Middleware
 {
     /**
      * The names of the cookies that should not be encrypted.

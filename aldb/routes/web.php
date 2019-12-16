@@ -61,11 +61,16 @@ Route::group(['prefix' => 'aldb', 'middleware' => 'sso'], function(){  //
     Route::get('menu','AldbController@menu');
 });
 
-Route::group(['prefix' => 'ps', 'middleware' => 'saml2'], function(){
+Route::group(['prefix' => 'tabula', 'middleware' => 'App\Http\Middleware\Saml2SSO'], function(){
+    Route::get('getset/','TabulaController@GetSmallGroupSet');
+});
+
+Route::group(['prefix' => 'ps', 'middleware' => 'App\Http\Middleware\Saml2SSO'], function(){
     Route::get('/','PsController@home');// <-middleware('sso');  
     Route::get('testVue','PsController@testVue');// <-middleware('sso');  
     Route::any('groups','PsController@groups');// <-middleware('sso');  
-    Route::get('assess','PsController@assess');// <-middleware('sso');  
+    Route::get('assess/{year}/{group}','PsController@assess($year,$group)');// <-middleware('sso');  
+    Route::any('assess','PsController@assess')->name('ps.assess');// <-middleware('sso');  
     Route::get('report','PsController@report');// <-middleware('sso');  
     Route::get('rptedit','PsController@reportedit');// <-middleware('sso');  
     Route::get('mimictutor','PsController@mimictutor');

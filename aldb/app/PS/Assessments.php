@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Middleware\PS;
+namespace App\PS;
 
 use Illuminate\Cookie\Middleware\EncryptCookies as Middleware;
 
-use \Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB;
 
-class Assessments extends Middleware
+class Assessments //extends Middleware
 {
     /**
      * The names of the cookies that should not be encrypted.
@@ -17,7 +17,7 @@ class Assessments extends Middleware
         //
     ];
     
-    public function GetAssessments($Presessional_Year, $Group_No ) {
+    public static function GetAssessments($Presessional_Year, $Group_No ) {
         
         try {
             $Assessments = DB::select(
@@ -31,6 +31,7 @@ class Assessments extends Middleware
                     .'ORDER BY Family_Name, First_Name', 
                 [$Group_No, $Presessional_Year]
             );
+           // dd($Assessments);
         //echo var_dump($Assessments);
         /*
         $Assessments = DB::table('Students') 

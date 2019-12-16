@@ -76,7 +76,7 @@ return [
             'charset' => 'utf8',
             'prefix' => '',
         ],
-/*        
+       /* 
         'oracle' => [
             'driver' => 'oci8',
             'host' => '(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = sitspr.warwick.ac.uk)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=sitspr.warwick.ac.uk)))',
@@ -87,7 +87,7 @@ return [
             'charset' => 'utf8',
             'prefix' => '',
         ],
-   */     
+      */
     ], 
     /*
     |--------------------------------------------------------------------------

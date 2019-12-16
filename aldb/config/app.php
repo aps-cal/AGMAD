@@ -162,9 +162,9 @@ return [
         App\Providers\RouteServiceProvider::class,
         
         /* Oracle Driver - Added by APS 8 Nov 2019 */
-        Yajra\Oci8\Oci8ServiceProvider::class,
+        //Yajra\Oci8\Oci8ServiceProvider::class,
         /* Auth0 Class - Added by APS 25 Nov 2019 */
-        Auth0\Login\LoginServiceProvider::class,
+        //Auth0\Login\LoginServiceProvider::class,
 
     ],
 

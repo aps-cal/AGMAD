@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Http\Middleware\PS;
+namespace App\PS;
 
 use Illuminate\Cookie\Middleware\EncryptCookies as Middleware;
 
 Use \Illuminate\Support\Facades\DB;
 
-class Values extends Middleware
-{
+class Values {
     /**
      * The names of the cookies that should not be encrypted.
      *
@@ -17,8 +16,11 @@ class Values extends Middleware
         //
     ];
     
-    
-    public function GetYears() {    
+    /*
+     * public static functions are used as no object of type Values will be 
+     * created and these functions will all be called as static functions
+     */
+    public static function GetYears() {    
         try {
             $Years = DB::select('SELECT DISTINCT Presessional_Year as PS_Year FROM Groups ORDER BY Presessional_Year');
         } catch (PDOException $e) {
@@ -26,50 +28,50 @@ class Values extends Middleware
         }
         return($Years);
     }
-    public function GetGroups() {    
+    public static function GetGroups($year) {    
         try {
-            $Groups = DB::select('SELECT DISTINCT Group_No FROM Groups ORDER BY Group_No');
+            $Groups = DB::select('SELECT DISTINCT Group_No FROM Groups WHERE Presessional_Year = ? ORDER BY Group_No', [$year]);
         } catch (PDOException $e) {
             die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
         }
         return($Groups);
     }
     
-    public function SetYear($year) {
+    public static function SetYear($year) {
         DB::table('Current_Values')->update(['Presessional_Year' => $year]);    
     }
     
-    public function GetYear() {
+    public static function GetYear() {
         $result = DB::table('Current_Values')->select('Presessional_Year')->get();
-        //return $result->Presessional_Year;
-        //return $result;
-        return $result['Presessional_Year'];
+        return($result[0]->Presessional_Year);
     }
     
-    public function SetPhase($phase) {
+    public static function SetPhase($phase) {
         DB::table('Current_Values')->update('Presessional_Phase', [$phase]);      
     }
     
-    public function GetPhase() {
-        return DB::table('Current_Values')->select('Presessional_Phase')->get();
+    public static function GetPhase() {
+         $result = DB::table('Current_Values')->select('Presessional_Phase')->get();
+         return($result[0]->Presessional_Phase);
     }
     
-    public function SetPhaseWeek($week) {
+    public static function SetPhaseWeek($week) {
         DB::table('Current_Values')->update('Phase_Week', [$week]);    
     }
     
-    public function GetPhaseWeek() {
-        return DB::table('Current_Values')->select('Phase_Week')->get();
+    public static function GetPhaseWeek() {
+        $result = DB::table('Current_Values')->select('Phase_Week')->get();
+        return($result[0]->Phase_Week);
     }
     
-    public function SetTermWeek($week) {
+    public static function SetTermWeek($week) {
         
     }
     
-    public function GetTermWeek($week) {
+    public static function GetTermWeek($week) {
         
     }
-    public function ListTutors() {
+    public static function ListTutors() {
         
     //    try {
     //        DB::connection()->getPdo();
