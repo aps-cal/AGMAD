@@ -26,13 +26,32 @@ class TabulaController extends Controller {
     public function __construct(){   
     }
     
+    public function Menu(){
+        return view('tabula.menu');
+    }
+    
     public function GetSmallGroupSet(){
         $smallGroupSet = new SmallGroupSet();
         $smallGroupSet->RetrieveSet('ET751','18/19',null);
+        return view('aldbhome');
     }
     
     
     
+    
+    
+    
+    
+    /*
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     */
 
     public function groups(Request $request) {
         Values::SetYear('2018');

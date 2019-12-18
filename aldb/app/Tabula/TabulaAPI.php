@@ -20,7 +20,7 @@ class TabulaAPI {
     
     
    
-    
+/*    Now done in GroupSet Class
     public static function RetrieveSet($ModuleCode, $AcademicYear, $smallGroupSetId) {
         if(!$smallGroupSetId) {
             $smallGroupSetId = '';
@@ -36,13 +36,15 @@ class TabulaAPI {
         // Where will the object be saved? 
         //  Presumaly you create the object and it then saves itself to the database?
     }
-    
+*/    
     
     public static function GetResponse($pageURL,$query){
+        error_reporting(E_STRICT); 
+        echo '<br/>GetResponse ';
         try {
             //echo ("</p>".base64_encode('el-apiuser:Roberts1951')."<p>");
             //echo ("</p>".base64_decode('ZWwtYXBpdXNlcjpSb2JlcnRzMTk1MQ==')."<p>");
-            error_reporting(E_STRICT); 
+            
             $ch = curl_init(); 
             curl_setopt($ch, CURLOPT_HTTPGET, true);  // Switch back to default GET Method
             // If sending values by the GET method then they need to be added to the URL string
@@ -65,9 +67,6 @@ class TabulaAPI {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Should prevent output to browser
             
             $res = curl_exec($ch); 
-            echo ("<p>TESTING<p>");
-            
-            
             $resObj = json_decode($res);
           //  echo $resObj->success.':'.$resObj->status;
           //  $GroupSet = 
@@ -80,17 +79,11 @@ class TabulaAPI {
          //    dd($xml);
          // echo ("<H1>TESTING</H1>");
           if(!$resObj->success){
-              echo $resObj->status; 
-              $errors = $resObj->errors;
-              echo $errors->message; 
+              TabulaAPI::LogErrors($resObj); // Log Failed Request
           } else {
               echo $resObj->status; 
-              echo Simplexml_load_string($resObj);
+          //    echo Simplexml_load_string($resObj);
           }
-          
-          //dd($xml);
-           
-            
         } catch (Exception $e) {
             echo ('Error message (if any): '.curl_error($ch).'\n\n');
             echo ("<p>");
@@ -123,20 +116,17 @@ class TabulaAPI {
         
     }
     
-    private function LogError($res) {
+    public static function LogErrors($resObj) {
         try {
-            echo 'ERROR ('.$res->status. '):'; 
-            foreach($res->errors as $error){
+            echo 'ERROR ('.$resObj->status. '):'; 
+            foreach($resObj->errors as $error){
                 echo '<p>'.$error->message.'</p>'; 
                 $sql = DB::insert('INSERT INTO Tabula_API_Errors (status, message) VALUES (?,?)',
                     [$error->status, $error->message]);
             }
         } catch (PDOException $e) {
             die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
-        }
-        
-        
-        
+        }  
     }
     
 }

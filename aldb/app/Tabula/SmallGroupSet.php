@@ -47,16 +47,24 @@
     occurrence
     sequence
     groups                  An array of small group objects for each group in the set
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
  */
 
 namespace App\Tabula;
 
+use \App\Tabula\TabulaAPI;
 use \Illuminate\Support\Facades\DB;
 
 class SmallGroupSet { //extends SimpleXMLElement {
     
     // Class Properties
-    var $PresessionalYear = '2020';
+    var $PresessionalYear = '2019';
     var $id;
     var $archived = false;
     var $academicYear;
@@ -76,9 +84,9 @@ class SmallGroupSet { //extends SimpleXMLElement {
     var $allowSelfGroupSwitching = false; 
     var $openForSignups = false;
     var $linkedDepartmentGroupSet = false;
-    var $studentMembership = null; 
+    var $studentMembership = null; // This is an object {total, linkedSits, included, excluded, users[]}
     // Class Array Properties
-    var $users;     // An array each element has two keys, userId and universityId
+    var $users;     // An array each element has two keys, userId and universityId  NB. This array may be found in $studentMembership 
     var $sitsLinks; // An array of objects representing the active links to SITS membership for the small group set. Each object contains four properties:
     var $groups;    // An array of small group objects for each group in the set
     
@@ -91,6 +99,7 @@ class SmallGroupSet { //extends SimpleXMLElement {
     }
     
     public function RetrieveSet($moduleCode, $academicYear, $smallGroupSetId) {
+        echo '<br/>RetrieveSet';
         $pageURL = "https://tabula.warwick.ac.uk/api/v1/module/".$moduleCode."/groups";
         if($smallGroupSetId){
             $pageURL.="/".$smallGroupSetId;
@@ -107,6 +116,24 @@ class SmallGroupSet { //extends SimpleXMLElement {
                     echo '<br/>'.$gs->id.'<br/>';
                     $this->ReadSet($gs);
                     $this->SaveSet();
+                    // Delete Groups 
+                    //$this->ClearGroups();   // This method is not working ... all groups are deleted!
+                    // Save Groups
+                    foreach($this->groups as $g){
+                        $this->SaveGroup($g);
+                    }
+                    $this->ClearUsers(); 
+                    if($this->$studentMembership){
+                        if($this->studentMembership->users){
+                            foreach($this->studentMembership->users as $u){
+                                $this->SaveUsers($u);
+                            }
+                        } else {
+                             echo '<br/>No studentMembership Users';
+                        }
+                    } else {
+                        echo '<br/>No studentMembership';
+                    }
                     var_dump($this);
                     echo '<PRE>'.print_r($this).'</PRE>';
                     //$this::RetrieveSet($moduleCode, $academicYear, $gs->id);
@@ -121,15 +148,6 @@ class SmallGroupSet { //extends SimpleXMLElement {
         } else {
             TabulaAPI::LogErrors($resObj);
         }
-        
-        
-      //  echo $res;
-      //  dd ($res);
-      //  $setXML = new \SimpleXMLElement($res);
-      //  $setObj = \simpexml_load_string($setXML);
-        
-        
-        
     }
     
     private function ReadSet($gs) {
@@ -163,11 +181,13 @@ class SmallGroupSet { //extends SimpleXMLElement {
     
     
     private function SaveSet() {
+        echo '<br/>SaveSet';
         try {
-            $sql = DB::select('SELECT id FROM GroupSets WHERE id = ?', [$this->id]); 
-            if($sql[0]->id == $this->id){
+            $cursor = DB::select('SELECT id FROM GroupSets WHERE id = ?', [$this->id]); 
+            // Check the first itel in the list
+            if($cursor[0]->id == $this->id){
                 echo 'GROUPSET FOUND -> UPDATE!';
-                $sql = DB::update('UPDATE GroupSets SET Presessional_year = ?, '
+                DB::update('UPDATE GroupSets SET Presessional_year = ?, '
                     .'archived = ?, academicYear = ?, name = ?, format = ?, allocationMethod = ?, '
                     .'releasedToTutors = ?, releasedToStudents = ?, '
                     .'emailTutorsOnChange = ?, emailStudentsOnChange = ?, '
@@ -188,7 +208,7 @@ class SmallGroupSet { //extends SimpleXMLElement {
                    
             } else {
                 echo 'GROUPSET NOT FOUND -> SAVE';
-                $sql = DB::insert('INSERT INTO GroupSets (Presessional_Year, '
+                DB::insert('INSERT INTO GroupSets (Presessional_Year, '
                     .'id, archived, academicYear, name, format, allocationMethod, '
                     .'releasedToTutors, releasedToStudents, '
                     .'emailTutorsOnChange, emailStudentsOnChange, '
@@ -209,6 +229,69 @@ class SmallGroupSet { //extends SimpleXMLElement {
         
                 // Excluded Array Properties - studentMembership, users, sitsLinks, groups    
             }
+        } catch (PDOException $e) {
+            die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
+        }
+    }
+    private function ClearGroups() {  // This method is not working ... all groups are deleted!
+        echo '<br/>ClearGroups';
+        try {
+            $grouplist = 'XXX';
+            foreach($this->groups as $g){
+                $grouplist.= ",'".$g->id."'";
+            }
+            //echo '<br/>GroupList:'.$grouplist;
+            DB::delete('DELETE FROM Groups WHERE SetID = ? AND GroupID NOT IN ( ? )', [$this->id,$grouplist]); 
+        } catch (PDOException $e) {
+            die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
+        }
+    }
+    
+    
+    private function SaveGroup($g) {
+        echo '<br/>SaveGroup';
+        try {
+            $cursor = DB::select('SELECT GroupID as id FROM Groups WHERE SetID = ? AND GroupID = ? ', [$this->id, $g->id]); 
+            //$cursor = DB::select('SELECT GroupID as id FROM Groups WHERE SetID = ?  ', [$this->id]); 
+            //$cursor = DB::select("SELECT GroupID as id FROM Groups WHERE GroupID LIKE TRIM(?) ", [$g->id]); 
+            //foreach($cursor as $c){
+            //   echo $c->id.',';
+            //}
+            //echo $cursor[0]->id.' == '.$g->id.' ? ';
+            
+            if($cursor[0]->id == $g->id){
+                echo 'Group '.$g->name.' Found -> UPDATE!';
+                DB::update('UPDATE Groups SET Presessional_year = ?, '
+                    .'SetID = ?, Group_No = ?, maxGroupSize = ? '
+                    .'WHERE GroupID = ? ',
+                    [$this->PresessionalYear, $this->id, $g->name, $g->maxGroupSize, $g->id]);
+                   
+            } else {
+                echo 'Group '.$g->name.' Not found -> INSERT!';
+                DB::insert('INSERT INTO Groups (Presessional_Year, '
+                    .'SetID, GroupID, Group_No, maxGroupSize) VALUES (?, ?, ?, ?, ?)',
+                    [$this->PresessionalYear, $this->id, $g->id, $g->name, $g->maxGroupSize]);  
+            }
+        } catch (PDOException $e) {
+            die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
+        }
+    }
+    
+    private function ClearUsers() {  // This method is not working ... all groups are deleted!
+        echo '<br/>ClearUsers';
+        try {
+            DB::delete('DELETE FROM GroupSetUsers WHERE SetID = ? ', [$this->id]); 
+        } catch (PDOException $e) {
+            die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
+        }
+    }
+    
+    
+    private function SaveUser($u) {
+        echo '<br/>SaveGroup';
+        try {
+            DB::insert('INSERT INTO GroupSetUsers (SetID, UserID, UniversityID) VALUES (?,?,?)',
+                [$this->id, $u->userId, $g->universityId]);  
         } catch (PDOException $e) {
             die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
         }
@@ -265,7 +348,6 @@ class SmallGroupSet { //extends SimpleXMLElement {
     public function UpdateSetAllocations() {
         
     }
-    
     
     
 }
