@@ -2,7 +2,7 @@
 @section('content')
 <div>
     
-    <h1> This is Tabula Content </h1>
+    <h2> This is Tabula Content </h2>
     
     
     
