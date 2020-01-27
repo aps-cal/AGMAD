@@ -56,21 +56,21 @@ class SiteBuilderAPI {
         $query2.= '&endDate='.date('d/m/Y',time()); 
         
         
-        $res = SiteBuilderAPI::GetResponse($url, $query);
+        $res = SiteBuilderAPI::GetResponse($url, $query); 
         //$res = str_replace("<filter/>","<filter></filter>",$res); // closed filter tag
         //$res = str_replace("formsbuider-submissions","submissions",$res); // closed filter tag
         dd($res);
-        $d = simplexml_load_string($res); // download
+        //$d = simplexml_load_string($res); // download
         //dd($d);
         //$resObj = json_decode($d);
         //dd($resObj);
-        $submissions = $d->submission;
-            foreach($submissions as $p => $s){
-                echo $p.' => '.$s;
-            }
+        //$submissions = $d->submission;
+        //    foreach($submissions as $p => $s){
+        //        echo $p.' => '.$s;
+        //    }
         //dd($res->submissions);
         //$d = simplexml_load_string($res); // download
-        $d = $res->submission;
+        //$d = $res->submission;
         dd($d);
         foreach($d->submission as $s){
             dd($s->propery['Submission ID']);
@@ -148,6 +148,8 @@ class SiteBuilderAPI {
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Should prevent output to browser
             $res = curl_exec($ch); 
+            echo "------";
+            dd($res);
             //$res = str_replace('"""','',$res); // remove quotes
             //if(!$res->success){
             //  echo '<BR/>Status: '.$res->status; 
