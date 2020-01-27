@@ -156,7 +156,7 @@ class SiteBuilderAPI {
             //  TabulaAPI::LogErrors($res); // Log Failed Request
             //  $xml = '';
             //} else {
-                $xml = simplexml_load_string($res);
+        //        $xml = simplexml_load_string($res);
                 //echo $resObj->status; 
           //    echo Simplexml_load_string($resObj);
           //}
