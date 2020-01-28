@@ -76,7 +76,7 @@ return [
             'charset' => 'utf8',
             'prefix' => '',
         ],
-       /* 
+        /*
         'oracle' => [
             'driver' => 'oci8',
             'host' => '(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = sitspr.warwick.ac.uk)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=sitspr.warwick.ac.uk)))',
@@ -86,8 +86,18 @@ return [
             'password' => 'frangotyohaz4',
             'charset' => 'utf8',
             'prefix' => '',
+        ],*/
+        'oracle' => [
+            'driver' => 'oci8',
+            'host' => '(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST = sitstr.warwick.ac.uk)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=sitstr.warwick.ac.uk)))',
+            'port' => '1521',
+            'database' => 'sitstr.warwick.ac.uk',
+            'username' => 'elsiai',
+            'password' => 'A&madTe5t',
+            'charset' => 'utf8',
+            'prefix' => '',
         ],
-      */
+      
     ], 
     /*
     |--------------------------------------------------------------------------
