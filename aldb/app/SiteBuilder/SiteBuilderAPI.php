@@ -14,7 +14,7 @@ use \Illuminate\Http\Request;
 
 use \Illuminate\Support\Facades\DB;
 
-use App\Tabula\TabulaAPI;
+//use App\Tabula\TabulaAPI;
 
 
 
@@ -57,10 +57,22 @@ class SiteBuilderAPI {
         
         
         $res = SiteBuilderAPI::GetResponse($url, $query); 
-        //$res = str_replace("<filter/>","<filter></filter>",$res); // closed filter tag
-        //$res = str_replace("formsbuider-submissions","submissions",$res); // closed filter tag
-        dd($res);
+        $res = str_replace("<filter/>","<filter></filter>",$res); // closed filter tag
+        $res = str_replace("formsbuider-submissions","submissions",$res); // closed filter tag
+        $payments = SiteBuilderAPI::ProcessPaymentsAsArray($res);
+        SiteBuilderAPI::SavePayments($payments);
+        //dd($payments);
+        //$xml = simplexml_load_string($res);
+        //dd($xml);
+        //$json = json_encode($xml);
+        //dd($json);
+        //$array = json_decode($json,TRUE);
+        //dd($array);
+        //dd($res);
+        //$s = new SimpleXMLElement($res);
+        //dd($s);
         //$d = simplexml_load_string($res); // download
+        
         //dd($d);
         //$resObj = json_decode($d);
         //dd($resObj);
@@ -71,8 +83,8 @@ class SiteBuilderAPI {
         //dd($res->submissions);
         //$d = simplexml_load_string($res); // download
         //$d = $res->submission;
-        dd($d);
-        foreach($d->submission as $s){
+        //dd($d);
+        foreach($res->submission as $s){
             dd($s->propery['Submission ID']);
             echo "<br/>".$s->propery['Submission ID'];
             echo "<br/>".$s['Submission time'];
@@ -118,9 +130,72 @@ class SiteBuilderAPI {
         //dd($resObj);
     }
     
+    private static function ProcessPaymentsAsArray($res){
+        $payments = array();
+        //dd($res);
+        $xml = simplexml_load_string($res);
+        //dd($xml);
+        $json = json_encode($xml);
+        //dd($json);
+        $array = json_decode($json,TRUE);
+        $submissions = $array["submission"];
+  //      dd($submissions);
+
+        foreach($submissions as $p){
+            foreach($p as $k=>$s)
+            //dd($s);
+            //    $payments[] = {$k -> $s};
+      
+            $payments[] = [
+                "Submission_ID"=>'"'.$s[0].'"',
+                "Submission_Time"=>'"'.$s[1].'"',
+                "Transaction_ID"=>'"'.$s[2].'"',
+                "Payment_Status"=>'"'.$s[3].'"',
+                "Payment_Amount"=>999.00,
+                "Student_No"=>'"'.$s[5].'"',
+                "Title"=>'"'.$s[6].'"',
+                "Family_Name"=>'"'.$s[7].'"',
+                "First_Name"=>'"'.$s[8].'"',
+                "Email"=>'"'.$s[9].'"',  
+                "Address"=>'"'.$s[10].'"'
+            ];
+       
+        }
+        //echo '$Payments[]';
+        //dd($payments);
+        return ($payments);                
+    }
+    
+    private static function SavePayments ($payments) {
+        echo '<br/>SavePayments()<br/>';
+        try {
+            foreach($payments as $p){
+            $cursor = DB::select('SELECT Submission_ID FROM Payments WHERE Submission_ID = ?', [$p["Submission_ID"]]); 
+                // Check the Submissions already in Payments Table
+                echo '<BR/>'.$cursor[0]->Submisison_ID.' == '.$p["Submission_ID"].'<BR/>';
+                if($cursor[0]->Submisison_ID == $p["Submission_ID"]){
+                    // Payment already recorded   
+                } else {
+                    DB::insert('INSERT INTO Payments ('
+                    .'Submission_ID, Submission_Time, Transaction_ID, '
+                    .'Payment_Status, Payment_Amount, Student_No, '
+                    .'Title, Family_name, First_Name, '
+                    .'Email, Address '
+                    .') VALUES ( ?, STR_TO_DATE(?, "%d/%m/%Y %d:%i"), ?, ?, ?, ?, ?, ?, ? ,? , ?) ', $p); 
+        //            [$p["Submission_ID"], $p["Submission_Time"],$p["Transaction_ID"],
+         //            $p["Payment_Status"], ($p["Payment_Amount"]==null?0:$p["Payment_Amount"]),
+         //            $p["Student_No"], $p["Title"],$p["Family_name"],
+         //            $p["First_Name"], $p["Email"], $p["Address"]] );
+                }
+            }
+        } catch (PDOException $e) {
+            die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
+        }
+    }
+    
     public static function GetResponse($pageURL,$query){
         error_reporting(E_STRICT); 
-        echo '<br/>GetResponse ';
+        echo '<br/>GetResponse()<br/>';
         try {
             //echo ("</p>".base64_encode('el-apiuser:Roberts1951')."<p>");
             //echo ("</p>".base64_decode('ZWwtYXBpdXNlcjpSb2JlcnRzMTk1MQ==')."<p>");
@@ -148,8 +223,8 @@ class SiteBuilderAPI {
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Should prevent output to browser
             $res = curl_exec($ch); 
-            echo "------";
-            dd($res);
+            //echo "------";
+            //dd($res);
             //$res = str_replace('"""','',$res); // remove quotes
             //if(!$res->success){
             //  echo '<BR/>Status: '.$res->status; 

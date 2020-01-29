@@ -62,12 +62,19 @@ Route::group(['prefix' => 'aldb', 'middleware' => 'sso'], function(){  //
 });
 
 Route::group(['prefix' => 'tabula', 'middleware' => 'App\Http\Middleware\Saml2SSO'], function(){
+    Route::get('/','TabulaController@Menu');
+    Route::any('set/','TabulaController@GetSet')->name('tabula.set');
     Route::get('getset/','TabulaController@GetSmallGroupSet');
 });
 
 Route::group(['prefix' => 'ps', 'middleware' => 'App\Http\Middleware\Saml2SSO'], function(){
     Route::get('/','PsController@home');// <-middleware('sso');  
     Route::get('testVue','PsController@testVue');// <-middleware('sso');  
+    Route::any('allocateclassrooms','PsController@allocateclassrooms');// <-middleware('sso');  
+    Route::any('allocatestudents','PsController@allocatestudents');// <-middleware('sso');  
+    Route::any('allocatetutors','PsController@allocatetutors');// <-middleware('sso');  
+    Route::any('getpayments','PsController@getpayments');// <-middleware('sso');  
+    
     Route::any('groups','PsController@groups');// <-middleware('sso');  
     Route::get('assess/{year}/{group}','PsController@assess($year,$group)');// <-middleware('sso');  
     Route::any('assess','PsController@assess')->name('ps.assess');// <-middleware('sso');  
@@ -92,7 +99,7 @@ Route::group(['prefix' => 'vue', 'middleware' => 'sso'], function(){
     //Route::get('rptedit','PsController@reportedit');// <-middleware('sso');  
     //Route::get('mimictutor','PsController@mimictutor');
 });
-
+/*
 Route::middleware(config('saml2_settings.routesMiddleware'))
 ->prefix(config('saml2_settings.routesPrefix').'/')->group(function() {
     Route::prefix('{idpName}')->group(function() {
@@ -124,3 +131,4 @@ Route::middleware(config('saml2_settings.routesMiddleware'))
         ));
     });
 });
+*/

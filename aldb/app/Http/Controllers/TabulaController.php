@@ -7,6 +7,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Input;
 
 //use App\Http\Middleware\WSSO as WSSO;
 use App\SITS\Students;
@@ -27,7 +28,26 @@ class TabulaController extends Controller {
     }
     
     public function Menu(){
-        return view('tabula.menu');
+        
+    }
+    public function GetSet(){
+      
+        $Module = Input::get('Module');
+        if(!$Module) $Module = 'ET751';
+        $aYear = Input::get('aYear');
+        if(!$aYear) $aYear = '18/19';
+        $SetID = Input::get('SetID');
+        $aYears = Values::GetAcadYears();
+        $Modules = Values::GetModules($aYear);
+        //var_dump($Modules);
+        $Sets = SmallGroupSet::GetSet($Module,$aYear,$SetID);
+        //$Sets = new SmallGroupSet;
+        //$Sets->RetrieveSet($Module,$aYear,$SetID); //'82f0db24-a2fc-4bfe-ae64-f366fcbdfc76'
+        //$printout = print_r($smallGroupSet);
+        return view('tabula.set')->with(['aYear'=>$aYear, 'aYears'=>$aYears, 
+            'Module' => $Module, 'Modules'=>$Modules, 
+            'SetID' => $SetID, 'Sets'=>$Sets]); 
+           
     }
     
     public function GetSmallGroupSet(){

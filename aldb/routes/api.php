@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
-
+use App\Http\Middleware\Saml2SSO as Saml2;  
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,7 +19,14 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 
-Route::group(['prefix' => 'api', 'middleware' => 'sso'], function(){
+Route::group(['prefix' => 'api', 'middleware' => 'App\Http\Middleware\Saml2SSO'], function(){  
+//    Route::any('tabula/set','ApiaController@GetTabulaSet')->name('api.tabula.set');   
     Route::get('assess','ApiController@assess');// <-middleware('sso');  
     Route::get('report','ApiController@report');// <-middleware('sso');  
 });
+/*
+Route::group(['prefix' => 'api', 'middleware' => 'sso'], function(){
+   
+});
+
+ */

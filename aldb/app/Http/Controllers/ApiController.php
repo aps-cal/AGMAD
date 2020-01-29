@@ -7,11 +7,44 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
+use App\SITS\Students;
+use App\PS\Groups;
+use App\PS\Values;
+
+use App\Tabula\TabulaAPI;
+use App\Tabula\SmallGroupSet;
+use App\Tabula\SmallGroup;
+use App\Tabula\SmallGroupEvent;
+
 class ApiController extends Controller
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
     
-       public function assess(Request $request) {
+    
+    public function GetTabulaSet(){
+        $Module = Input::get('Module');
+        if(!$Module) $Module = 'ET751';
+        $aYear = Input::get('aYear');
+        if(!$aYear) $aYear = '18/19';
+        $SetID = Input::get('SetID');
+        $aYears = Values::GetAcadYears();
+        $Modules = Values::GetModules($aYear);
+        //var_dump($Modules);
+        $Sets = SmallGroupSet::GetSet($Module,$aYear,$SetID);
+        //$Sets = new SmallGroupSet;
+        //$Sets->RetrieveSet($Module,$aYear,$SetID); //'82f0db24-a2fc-4bfe-ae64-f366fcbdfc76'
+        //$printout = print_r($smallGroupSet);
+        $data = ['aYear'=>$aYear, 'aYears'=>$aYears, 
+            'Module' => $Module, 'Modules'=>$Modules, 
+            'SetID' => $SetID, 'Sets'=>$Sets];
+        //return view('tabula.set')->with(['aYear'=>$aYear, 'aYears'=>$aYears, 
+        //    'Module' => $Module, 'Modules'=>$Modules, 
+        //    'SetID' => $SetID, 'Sets'=>$Sets]); 
+           
+    }
+    
+    
+    public function assess(Request $request) {
         Values::SetYear('2018');
         $year = Values::GetYear();
         $year = '2017';

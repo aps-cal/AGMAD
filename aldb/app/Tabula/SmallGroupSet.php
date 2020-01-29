@@ -86,17 +86,149 @@ class SmallGroupSet { //extends SimpleXMLElement {
     var $linkedDepartmentGroupSet = false;
     var $studentMembership = null; // This is an object {total, linkedSits, included, excluded, users[]}
     // Class Array Properties
-    var $users;     // An array each element has two keys, userId and universityId  NB. This array may be found in $studentMembership 
+    //var $users;     // An array each element has two keys, userId and universityId  NB. This array may be found in $studentMembership 
     var $sitsLinks; // An array of objects representing the active links to SITS membership for the small group set. Each object contains four properties:
     var $groups;    // An array of small group objects for each group in the set
     
     function __construct(){
         
     }
-    
+    /*
+    function __construct($xml){
+        if($xml){
+            $this->ReadSet($xml);
+        }
+    }
+    */
     public function CreateSet() {
         
     }
+    
+    public static function GetSets($moduleCode, $academicYear){
+        $pageURL = "https://tabula.warwick.ac.uk/api/v1/module/".$moduleCode."/groups";
+        $query = "academicYear=".$academicYear;
+        $resObj = TabulaAPI::GetResponse($pageURL, $query);
+        if($resObj->success){
+            return $resObj->groups;
+        } else { 
+            return array();
+        }
+    }
+    
+    public static function GetSet($moduleCode, $academicYear, $smallGroupSetId){
+        $pageURL = "https://tabula.warwick.ac.uk/api/v1/module/".$moduleCode."/groups";
+        if($smallGroupSetId){
+            $pageURL.="/".$smallGroupSetId;
+        }
+        $query = "academicYear=".$academicYear;
+        $resObj = TabulaAPI::GetResponse($pageURL, $query);
+        if($resObj->success){
+            // Add Tutors and Students
+            echo "<br/>Group Sets";
+            foreach($resObj->groups as $gs){
+                echo "<br/>Groups";
+                foreach($gs->groups as $g){
+                    // Replace Students array
+                    echo "<br/>Students";
+                    $g->studentDetails = SmallGroupSet::GetStudentDetails($g->students);
+                    foreach($g->studentDetails as $s){
+                        echo '<br/>'.$s->fullName;
+                    }  
+        
+                    echo "<br/>Events";
+                    foreach($g->events as $e){
+                        // Replace Tutors array
+                        echo "<br/>Tutors";
+                        $e->tutorDetails = SmallGroupSet::GetTutorDetails($e->tutors);
+                        foreach($e->tutorDetails as $t){
+                             echo '<br/>'.$t->fullName;
+                        }
+        //                dd($e->tutors);
+                    }
+                                    
+                }               
+            }
+            return $resObj->groups;
+        } else { 
+            return array();
+        }
+    }
+    
+    
+    public static function GetTutorDetails($tutors){
+        $pageURL = "https://tabula.warwick.ac.uk/api/v1/member/";
+        $query = "fields=member.universityId,"
+                //. "member.userId, "
+                //. "member.userType,"
+                //. "member.title, "
+                . "member.fullName,"
+                . "member.firstName,"
+                . "member.lastName";
+                //. "member.nationality, "
+                //. "member.dateOfBirth, "
+                //. "member.jobTitle, "
+                //. "member.homeDepartment, "
+                //. "member.phoneNumber, "
+                //. "member.email, "
+                //. "member.homeEmail, "
+                //. "member.groupName";
+        $tutorDetails = array();
+        foreach($tutors as $t){
+              //dd($t);
+            $url = $pageURL.$t->universityId;
+            //echo $url.'<br/>'.$query;
+            $resObj = TabulaAPI::GetResponse($url, $query);
+            //dd($resObj);
+            
+            if($resObj->success){
+                $tutorDetails[] = $resObj->member; 
+            } else {
+                dd($resObj);
+            }
+        }
+        //echo '<PRE>'.print_r($tutorDetails).'</PRE>';
+        return $tutorDetails;
+        
+    }
+        
+    public static function GetStudentDetails($students){
+        $pageURL = "https://tabula.warwick.ac.uk/api/v1/member/";
+        $query = "fields=member.universityId,"
+                . "member.fullName,"
+                . "member.userId,"
+                . "member.userType,"
+                . "member.title,"
+                . "member.firstName,"
+                . "member.lastName,"
+                . "member.nationality,"
+                . "member.dateOfBirth,"
+                . "member.jobTitle,"
+                . "member.homeDepartment,"
+                . "member.phoneNumber,"
+                . "member.email,"
+                . "member.homeEmail,"
+                . "member.groupName";
+       
+        $studentDetails = array();
+        foreach($students as $s){
+             //dd($s);
+            $url = $pageURL.$s->universityId;
+            //echo $url.'<br/>'.$query;
+            //dd($url);
+            $resObj = TabulaAPI::GetResponse($url, $query);
+            //dd($resObj);
+            if($resObj->success){
+                $studentDetails[] = $resObj->member; 
+            } else {
+                dd($resObj);
+            }
+            
+        }
+        
+       // echo '<PRE>'.print_r($studentDetails).'</PRE>';
+        return $studentDetails;
+    }
+    
     
     public function RetrieveSet($moduleCode, $academicYear, $smallGroupSetId) {
         echo '<br/>RetrieveSet';
@@ -110,32 +242,45 @@ class SmallGroupSet { //extends SimpleXMLElement {
         //echo $moduleCode. ' '. $academicYear; 
         
         if($resObj->success){
-            //echo $resObj->status; 
-            //if(sizeof($resObj->groups)>1) {
+                $SmallGroupSets = array();
                 foreach($resObj->groups as $gs){
                     echo '<br/>'.$gs->id.'<br/>';
-                    $this->ReadSet($gs);
-                    $this->SaveSet();
+                    //$newGroupSet = new SmallGroupSet($gs);
+                    //$newGroupSet->SaveSet();
+                    
+                    //$newGroupSet = simplexml_load_string($gs, 'SmallGroupSet');
+                    //echo 'New Class ID = '.$newGroupSet->id;
+                    //$newGroupSet->SaveSet();
+                    $sgs = $this->ReadSet($gs);
+                    
+                    // Add New GroupSet to Array
+                    $SmallGroupSets[] = $sgs;
+                    // Save New groupSet to db
+                    $sgs->SaveSet();
+                    
                     // Delete Groups 
                     //$this->ClearGroups();   // This method is not working ... all groups are deleted!
                     // Save Groups
-                    foreach($this->groups as $g){
-                        $this->SaveGroup($g);
+                    foreach($sgs->groups as $g){
+                        $sgs->SaveGroup($g);
                     }
-                    $this->ClearUsers(); 
-                    if($this->$studentMembership){
+                    if($sgs->studentMembership) echo 'XML has members';
+                    $sgs->ClearUsers(); 
+                    
+                    if($sgs->studentMembership){
+                        echo "<br/>StudentMembership: User Count ".count($sgs->studentMembership->users).'<br/>';
                         if($this->studentMembership->users){
-                            foreach($this->studentMembership->users as $u){
-                                $this->SaveUsers($u);
+                            foreach($sgs->studentMembership->users as $u){
+                                $sgs->SaveUser($u);
                             }
                         } else {
-                             echo '<br/>No studentMembership Users';
+                             echo '<br/>No studentMembership Users<br/>';
                         }
                     } else {
-                        echo '<br/>No studentMembership';
+                        echo '<br/>No studentMembership<br/>';
                     }
-                    var_dump($this);
-                    echo '<PRE>'.print_r($this).'</PRE>';
+                    //var_dump($this);
+                    //echo '<PRE>'.print_r($this).'</PRE>';
                     //$this::RetrieveSet($moduleCode, $academicYear, $gs->id);
                 }
             //} else { 
@@ -151,6 +296,33 @@ class SmallGroupSet { //extends SimpleXMLElement {
     }
     
     private function ReadSet($gs) {
+        $sgs = new SmallGroupSet();
+        $sgs->id = $gs->id;
+        $sgs->archived = $gs->archived;
+        $sgs->academicYear = $gs->academicYear;
+        $sgs->academicYear = '19/20';
+        $sgs->name = $gs->name;
+        $sgs->format = $gs->format; 
+        $sgs->allocationMethod = $gs->allocationMethod; 
+        // Boolean Properties
+        $sgs->releasedToTutors = $gs->releasedToTutors; 
+        $sgs->releasedToStudents = $gs->releasedToStudents;
+        $sgs->emailTutorsOnChange = $gs->emailTutorsOnChange;
+        $sgs->emailStudentsOnChange = $gs->emailStudentsOnChange;
+        $sgs->studentsCanSeeTutorName = $gs->studentsCanSeeTutorName;
+        $sgs->studentsCanSeeOtherMembers = $gs->studentsCanSeeOtherMembers;
+        $sgs->defaultMaxGroupSizeEnabled = $gs->defaultMaxGroupSizeEnabled;
+        $sgs->defaultMaxGroupSize = $gs->defaultMaxGroupSize;
+        $sgs->collectAttendance = $gs->collectAttendance;  //Attendance should be collected at events
+        $sgs->allowSelfGroupSwitching = $gs->allowSelfGroupSwitching; 
+        $sgs->openForSignups = $gs->openForSignups;
+        $sgs->linkedDepartmentGroupSet = $gs->linkedDepartmentGroupSet;
+        // Class Array Properties
+        $sgs->studentMembership = $gs->studentMembership; 
+        $sgs->users = $gs->users;     // An array each element has two keys, userId and universityId
+        $this->sitsLinks = $gs->sitsLinks; // An array of objects representing the active links to SITS membership for the small group set. Each object contains four properties:
+        $sgs->groups = $gs->groups;    // An array 
+        /*
         $this->id = $gs->id;
         $this->archived = $gs->archived;
         $this->academicYear = $gs->academicYear;
@@ -176,17 +348,19 @@ class SmallGroupSet { //extends SimpleXMLElement {
         $this->users = $gs->users;     // An array each element has two keys, userId and universityId
         $this->sitsLinks = $gs->sitsLinks; // An array of objects representing the active links to SITS membership for the small group set. Each object contains four properties:
         $this->groups = $gs->groups;    // An array 
-        
+         * */
+       
+        return $sgs;
     }
     
     
     private function SaveSet() {
-        echo '<br/>SaveSet';
+        //echo '<br/>SaveSet';
         try {
             $cursor = DB::select('SELECT id FROM GroupSets WHERE id = ?', [$this->id]); 
             // Check the first itel in the list
             if($cursor[0]->id == $this->id){
-                echo 'GROUPSET FOUND -> UPDATE!';
+                //echo 'GROUPSET FOUND -> UPDATE!';
                 DB::update('UPDATE GroupSets SET Presessional_year = ?, '
                     .'archived = ?, academicYear = ?, name = ?, format = ?, allocationMethod = ?, '
                     .'releasedToTutors = ?, releasedToStudents = ?, '
@@ -207,7 +381,7 @@ class SmallGroupSet { //extends SimpleXMLElement {
                      $this->id]);
                    
             } else {
-                echo 'GROUPSET NOT FOUND -> SAVE';
+                //echo 'GROUPSET NOT FOUND -> SAVE';
                 DB::insert('INSERT INTO GroupSets (Presessional_Year, '
                     .'id, archived, academicYear, name, format, allocationMethod, '
                     .'releasedToTutors, releasedToStudents, '
@@ -234,7 +408,7 @@ class SmallGroupSet { //extends SimpleXMLElement {
         }
     }
     private function ClearGroups() {  // This method is not working ... all groups are deleted!
-        echo '<br/>ClearGroups';
+        //echo '<br/>ClearGroups';
         try {
             $grouplist = 'XXX';
             foreach($this->groups as $g){
@@ -249,7 +423,7 @@ class SmallGroupSet { //extends SimpleXMLElement {
     
     
     private function SaveGroup($g) {
-        echo '<br/>SaveGroup';
+        //echo '<br/>SaveGroup';
         try {
             $cursor = DB::select('SELECT GroupID as id FROM Groups WHERE SetID = ? AND GroupID = ? ', [$this->id, $g->id]); 
             //$cursor = DB::select('SELECT GroupID as id FROM Groups WHERE SetID = ?  ', [$this->id]); 
@@ -260,14 +434,14 @@ class SmallGroupSet { //extends SimpleXMLElement {
             //echo $cursor[0]->id.' == '.$g->id.' ? ';
             
             if($cursor[0]->id == $g->id){
-                echo 'Group '.$g->name.' Found -> UPDATE!';
+                //echo 'Group '.$g->name.' Found -> UPDATE!';
                 DB::update('UPDATE Groups SET Presessional_year = ?, '
                     .'SetID = ?, Group_No = ?, maxGroupSize = ? '
                     .'WHERE GroupID = ? ',
                     [$this->PresessionalYear, $this->id, $g->name, $g->maxGroupSize, $g->id]);
                    
             } else {
-                echo 'Group '.$g->name.' Not found -> INSERT!';
+                //echo 'Group '.$g->name.' Not found -> INSERT!';
                 DB::insert('INSERT INTO Groups (Presessional_Year, '
                     .'SetID, GroupID, Group_No, maxGroupSize) VALUES (?, ?, ?, ?, ?)',
                     [$this->PresessionalYear, $this->id, $g->id, $g->name, $g->maxGroupSize]);  
@@ -278,7 +452,7 @@ class SmallGroupSet { //extends SimpleXMLElement {
     }
     
     private function ClearUsers() {  // This method is not working ... all groups are deleted!
-        echo '<br/>ClearUsers';
+        //echo '<br/>ClearUsers';
         try {
             DB::delete('DELETE FROM GroupSetUsers WHERE SetID = ? ', [$this->id]); 
         } catch (PDOException $e) {
@@ -288,10 +462,12 @@ class SmallGroupSet { //extends SimpleXMLElement {
     
     
     private function SaveUser($u) {
-        echo '<br/>SaveGroup';
-        try {
-            DB::insert('INSERT INTO GroupSetUsers (SetID, UserID, UniversityID) VALUES (?,?,?)',
-                [$this->id, $u->userId, $g->universityId]);  
+        //echo '<br/>SaveUser'.$u->userId .'/'. $u->universityId;
+        try {       
+            if($u->userId && $u->universityId){
+                DB::insert('INSERT INTO GroupSetUsers (SetID, UserID, UniversityID) VALUES (?,?,?)',
+                    [$this->id, $u->userId, $u->universityId]);  
+            }
         } catch (PDOException $e) {
             die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
         }
@@ -299,7 +475,7 @@ class SmallGroupSet { //extends SimpleXMLElement {
     
     private function LoadSet() {
         try{
-        $Assessments = DB::select(
+            $Assessments = DB::select(
                 'SELECT Student_No, Family_Name, First_Name,  ' 
                     .'Listening, Reading, Writing, Speaking, '
                     .'Classroom_listening, Classroom_Writing, Classroom_Reading, '

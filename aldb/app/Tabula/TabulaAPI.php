@@ -15,7 +15,6 @@ use \Illuminate\Http\Request;
 use \Illuminate\Support\Facades\DB;
 
 
-
 class TabulaAPI {
     
     
@@ -40,7 +39,7 @@ class TabulaAPI {
     
     public static function GetResponse($pageURL,$query){
         error_reporting(E_STRICT); 
-        echo '<br/>GetResponse ';
+        //echo '<br/>GetResponse ';
         try {
             //echo ("</p>".base64_encode('el-apiuser:Roberts1951')."<p>");
             //echo ("</p>".base64_decode('ZWwtYXBpdXNlcjpSb2JlcnRzMTk1MQ==')."<p>");
@@ -68,7 +67,7 @@ class TabulaAPI {
             
             $res = curl_exec($ch); 
             $resObj = json_decode($res);
-          //  echo $resObj->success.':'.$resObj->status;
+            echo $resObj->success.':'.$resObj->status;
           //  $GroupSet = 
           //  echo "<pre>"; print_r($resArr); echo "</pre>";
             
@@ -79,9 +78,10 @@ class TabulaAPI {
          //    dd($xml);
          // echo ("<H1>TESTING</H1>");
           if(!$resObj->success){
+              echo $resObj->status; 
               TabulaAPI::LogErrors($resObj); // Log Failed Request
           } else {
-              echo $resObj->status; 
+              //echo $resObj->status; 
           //    echo Simplexml_load_string($resObj);
           }
         } catch (Exception $e) {

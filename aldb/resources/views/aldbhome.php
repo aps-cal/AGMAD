@@ -1,4 +1,4 @@
-@extends('layouts.aldblayout')
+@extends('layouts.aldb')
 @section('content')
 <div class="container">
     <h1>ALDB</h1>

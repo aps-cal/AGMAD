@@ -25,7 +25,14 @@ class Saml2SSO {
             dd($request->server());
             return $next($request); //->with('message', 'SAML2 SSO is still not configured.');
             //return redirect('back')->with('WARNING', 'You are not logged in with a valid Warwick ID');
-        } elseif($request->server('ou') == 'Centre for Applied Linguistics' && $request->server('staff') == 'member;staff') {
+        } elseif($request->server('staff') == 'member;staff') {  // Any Staff
+            $this->UserAccess($request); 
+            $this->LogUser($request); 
+        } elseif($request->server('staff') <> 'member;staff') {  // Any non-staff
+            $this->UserAccess($request); 
+            $this->LogUser($request); 
+/*        } elseif($request->server('ou') == 'Centre for Applied Linguistics' && $request->server('staff') == 'member;staff') {
+            
             $this->LogUser($request);
             echo 'Welcome back '.$request->server('givenName').' - '.$request->server('ou').' ('.$request->server('staff').')';
             return $next($request);
@@ -33,9 +40,9 @@ class Saml2SSO {
             $this->LogUser($request);
             echo 'Welcome back '.$request->server('givenName').' - '.$request->server('ou').' ('.$request->server('staff').')';
             return $next($request); //->with('message', 'Welcome back '.$request->server('givenName').'.');
-        } elseif ($request->server('cn') == 'elsiai') {
+*/        } elseif ($request->server('cn') == 'elsiai') {
             $this->LogUser($request);
-            echo 'Welcome back Andrew - You have Developer access!';
+            echo 'Welcome back AP - You have Developer access!';
             return $next($request); //-.->with('message', 'Welcome back Andrew - You have Developer access!');
         } else {
             LogUser($request);
@@ -63,7 +70,49 @@ class Saml2SSO {
             'Department' => $request->server('ou'),
             'Member' => $request->server('staff'),
             'RequestURI' => $request->server('REQUEST_URI'),
-            'RemoteIP' => $request->server('REMOTE_ADDR')       
+            'RemoteIP' => $request->server('REMOTE_ADDR'),
+            'Role' => session('userRole')    
             ]);    
+    }
+    private function UserAccess($request){
+        try {
+            // Check if User is already registered in Saml2UserAccess
+            $cursor = DB::select('SELECT Username, Role FROM Saml2UserRoles WHERE Username = ?', [$request->server('cn')]); 
+            if($cursor){
+                $Role = $cursor[0]->Role;
+                // Registered - Retrieve last login access
+                $cursor = DB::select('SELECT MAX(Timestamp) as LastVisit FROM Saml2UserLog WHERE Username = ?', [$request->server('cn')]); 
+                $LastVisit = $cursor[0]->LastVisit;
+                $userMessage = 'Welcome back '.$request->server('givenName').', your access role is '.$Role.'. Your last access was at '.$LastVisit;
+            } else {
+                // Default Roles 
+                if ($request->server('staff') == "member;staff") {
+                    switch($request->server('ou')):
+                        case 'Centre for Applied Linguistics': 
+                            $Role = 'Tutor'; break;
+                        case 'Information Technology Services': 
+                            $Role = 'IT Support'; break;
+                        default:
+                            $Role = 'Pending'; 
+                    endswitch;
+                } else {
+                    $Role = 'Student'; 
+                }
+                // Register first time access to system
+                DB::insert('INSERT INTO Saml2UserRoles (Username, Surname, GivenName, Role) VALUES ( ?, ?, ?, ?)',
+                    [$request->server('cn'), $request->server('sn'), $request->server('givenName'), $Role]);
+                $userMessage = 'Welcome '.$request->server('givenName').', your have been granted an access role of '.$Role.'.';
+            }
+            echo $userMessage;
+            // Store User Role
+            session()->put('userRole',$Role);  // c.f. session('userRole',$Role);
+            // Get User Role 
+            $userRole = session()->get('userRole','No Access'); // $userRole = session('userRole');
+            if($userRole <> $Role){
+                echo ' - WARNING: User Role '.$Role.' not set in session';
+            }
+        } catch (PDOException $e) {
+            die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
+        }
     }
 }

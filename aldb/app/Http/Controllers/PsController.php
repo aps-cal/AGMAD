@@ -15,6 +15,7 @@ use App\PS\Reports;
 use App\PS\Tutors;
 use App\PS\Values;
 use App\PS\Groups;
+use App\SiteBuilder\SiteBuilderAPI;
 
 
 class PsController extends Controller {
@@ -30,6 +31,50 @@ class PsController extends Controller {
         return view('pshome');
     }
     
+    public function getPayments(Request $request) {
+        echo 'Got HERE!';
+        $payments = SiteBuilderAPI::getPayments(); 
+        
+        return view('getpayments')->with(['payments'=> $payments]);
+    }
+    
+    public function allocateclassrooms(Request $request) {
+        
+        
+        
+        return view('allocateclassrooms'); //->with(['groups'=> $groups]);
+    }
+    public function allocatestudents(Request $request) {
+        Values::SetYear('2018');
+        $year = Values::GetYear();
+        $year = '2018';
+        $phase = '5';
+        echo $year;
+        $years = Values::GetYears();
+        $aYear = Values::GetAcadYear($year);
+        $aYear = '18/19';
+        $aYears = Values::GetAcadYears();
+        $phases = Values::GetPhases();
+        $groups = Values::GetGroups($year,$phase);
+        
+        
+        
+        return view('allocatestudents')->with([
+            'years'=> $years,
+            'year'=> $year,
+            'aYears'=>$aYears, 
+            'aYear' => $aYear,
+            'phases'=>$phases, 
+            'phase' => $phase,
+            'groups'=> $groups
+            
+            ]);
+    }
+    public function allocatetutors(Request $request) {
+        
+        
+        return view('allocatetutors'); //->with(['groups'=> $groups]);
+    }
     public function groups(Request $request) {
         Values::SetYear('2018');
         $year = Values::GetYear();
@@ -41,7 +86,7 @@ class PsController extends Controller {
         $AcademicYear = '19/20';
         $groups = Groups::GetTeachingGroups($ModuleCode,$AcademicYear);
         //$years = Values::GetYears();
-        //$groups = Values::GetGroups();
+        //$groups = Values::GetGroups($year,$phase);
         //echo serialize( $groups);
         
         return view('psassess')->with(['groups'=> $groups]);
@@ -62,7 +107,7 @@ class PsController extends Controller {
            $year = Values::GetYear();
         }
         // Load Groups for dropdown
-        $groups = Values::GetGroups($year);
+        $groups = Values::GetGroups($year,'5');
         // Check for Group Input
         if(!($group = $request->input('Group'))) {
            $group = '01';
@@ -93,7 +138,7 @@ class PsController extends Controller {
         $group = '03';
         $reports = Reports::GetReports($year,$group);
         $years = Values::GetYears();
-        $groups = Values::GetGroups();
+        $groups = Values::GetGroups($year,'5');
         //echo serialize( $groups);
         return view('psreport')->with(['reports'=>$reports, 'years'=> $years, 'groups'=> $groups, 'year'=> $year, 'group'=> $group]);
  
@@ -146,7 +191,7 @@ class PsController extends Controller {
         $group = '03';
         $assessments = Assessments::GetAssessments($year,$group);
         $years = Assessments::GetYears();
-        $groups = Assessments::GetGroups();
+        $groups = Assessments::GetGroups($year,'5');
         //echo serialize( $groups);
         return view('reportedit')->with(['assessments'=>$assessments, 'years'=> $years, 'groups'=> $groups, 'year'=> $year, 'group'=> $group]);
     } 
