@@ -17,13 +17,44 @@ class Students //extends Middleware
         //
     ];
     
-    public static function GetStudents($Presessional_Year, $Group_No ) {
+    
+    private static function SortYearAsc ($a, $b) {
+        if ($a['acad_year'] == $b['acad_year']) {
+            return 0;
+        }
+        return ($a['acad_year'] < $b['acad_year']) ? -1 : 1;
+    }
+    
+    public function comparator($object1, $object2) { 
+            return $object1->surname > $object2->surname; 
+    }        
+    public static function GetSITStudents($Academic_Year ) {
         
         try {
-            dd(config('database.connections'));
+         
+            //dd(config('database.connections'));
             
             //dd(config('database.connections.oracle.database'));
-            $dbconnection = 'oracle';
+            //$dbconnection = 'oracle';
+            
+            $Students = (array) DB::connection('oracle')->select('SELECT * FROM UWTABS.V_UW_CALUA UA WHERE Acad_Year LIKE '
+                    ."'".$Academic_Year."'". ' ORDER BY Surname, First_Name' );
+            
+            
+               
+            //usort($Students, 'comparator');
+            /*
+            foreach ($Students as $key => $row) {
+                $sort[$key]  = $row['surname'];
+            }
+            // Sort the data with mid descending
+            // Add $data as the last parameter, to sort by the common key
+            array_multisort($sort, SORT_DESC, $Students);
+            */
+            
+            
+            // dd($Students);
+             /*
             $Students = DB::connection('oracle')->select(
                 "SELECT C.CAP_STUC AS Student_No, U.STU_SURN as Surname, U.STU_FNM1 as First_Name, U.STU_TITL as Title, "
                 .'U.STU_INIT as Inits, U.STU_NAME as Name, U.STU_DOB as DOB, U.STU_GEND as Gender, U.STU_HAEM as Home_Email, '
@@ -38,7 +69,7 @@ class Students //extends Middleware
                 .'LEFT JOIN INTUIT_SRS_COD AS D ON D.COD_CODE = U.STU_CODC) '
                 .'LEFT JOIN INTUIT_SRS_NAT AS N ON N.NAT_CODE = U.STU_NATC) '
                 ."WHERE CAP_CRSC IN ('TETS-PSE6','TETS-PSE10')"
-            );
+            );*/
             /*
             $dbconnection = 'mysql';
             $Students = DB::connection('oracle')->select(
@@ -78,4 +109,92 @@ class Students //extends Middleware
         return($Students);
         
     }
+    
+    public static function SITS2PSE($Students) {
+        
+        try {
+            //dd($Students);
+            foreach($Students as $s){
+            
+                $Students = (array) DB::connection('mysql')->select(
+                    "INSERT INTO PSE_Students "
+                    ."(Student_No, Acad_year, Family_NAme, First_Name) "
+                    ."SELECT ?, ?, ?, ? FROM DUAL "
+                    ."WHERE NOT EXISTS ("
+                    ."SELECT Student_No, Acad_Year FROM PSE_Students "
+                    . "WHERE Student_No = ? AND Acad_Year = ? ) ", 
+                    [$s->student_no, $s->acad_year, $s->surname, $s->first_name , 
+                     $s->student_no, $s->acad_year ]);
+            }
+  
+        } catch (PDOException $e) {
+            echo($exception->getMessage());
+        }
+        return;
+        
+    }
+    
+    public static function GetPSEStudents($Academic_Year, $Group_No ) {
+        
+        try {
+         
+            //dd(config('database.connections'));
+            
+            //dd(config('database.connections.oracle.database'));
+            //$dbconnection = 'oracle';
+            
+            $Students = (array) DB::connection('mysql')->select('SELECT * FROM PSE_Students WHERE Acad_Year LIKE '
+                    ."'".$Academic_Year."'". ' ORDER BY Family_Name, First_Name' );
+            
+            //dd($Students);
+        } catch (PDOException $e) {
+            die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
+        }
+        return($Students);
+        
+    }
+    
+    public static function GetStudentGroups($Academic_Year,$Phase_No ) {
+        
+        try {
+         
+            //dd(config('database.connections'));
+            
+            //dd(config('database.connections.oracle.database'));
+            //$dbconnection = 'oracle';
+            
+            // Read SITS Students into Array
+            $Students = (array) DB::connection('oracle')->select("SELECT "
+                ."Acad_Year, Student_No, Surname, First_Name, Gender, Nationality, "
+                ."Dept_Code as Department, Course, '' as Results, '' as Group_No "
+                ."FROM UWTABS.V_UW_CALUA UA "
+                ."WHERE Acad_Year LIKE '".$Academic_Year."' ");
+            //dd($Students);
+            // Read PSE Student Groups into Array
+            $Groups = (array) DB::connection('mysql')->select("SELECT "
+                ."Acad_Year, Student_No, Phase_4_Group, Phase_5_Group "
+                ."FROM PSE_Students "
+                ."WHERE Acad_Year LIKE '".$Academic_Year."' ");
+            //dd($Groups);
+            // Update Students Array with Approprate Groups 
+            foreach($Students as $s) {
+                foreach($Groups as $g) {
+                    if($s->student_no ==  $g->Student_No){
+                        $s->group_no = ($Phase_No = 4? $g->Phase_4_Group: $g->Phase_5_Group);                     
+                    }
+                        
+                }
+            }
+            //dd($Students);
+        } catch (PDOException $e) {
+            die("Could not connect to the database.  Please check your configuration.".$exception->getMessage());
+        }
+        return($Students);
+        
+    }
+    
+    
+    
 }
+
+
