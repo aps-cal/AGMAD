@@ -3,7 +3,7 @@
 <div style="margin:10px;">    
     <h3>{{$pageTitle}}</h3>
 {{ Form::open(array($pageURL)) }}
-    <div>
+    <div id="Request2">
     Pre-Sessional Year  <select name="Year" id="Year" class="Filter" onchange="this.form.submit();">
     @foreach($years as $y)<option @if($year == $y->Year) Selected @endif >{{$y->Year}}</option>
     @endforeach
@@ -20,8 +20,12 @@
     </div>
     <div>
         <table >
+            <thead id="Request" style="height:50px; "><!--class="scrolling_table" -->
+            </thead>
             <thead id="Heading" style="height:50px; "><!--class="scrolling_table" -->
                 
+            </thead>
+            <thead id="Filter" style="height:50px; "><!--class="scrolling_table" -->
             </thead>
             <tbody id="Records" style="max-height:300px; overflow: auto;">
                 
@@ -61,6 +65,7 @@ var oldID, oldRow = null;
 var recordChanged = false;
 // Launch when document ready 
 $(document).ready(function(){
+    displayRequest();
     displayHeaders();
     displayFilters();
     loadFilters();
@@ -72,7 +77,14 @@ function getFields(){
     fields = records[0].getOwnPropertyNames();
     alert(fields[0]);
 }
-
+function displayRequest(){  
+    var record = records[0];
+    var cols = record.length;
+    html="<tr><th colspan="+cols+">"
+    html=html+$("#Request2").html();
+    html=html+"</th></tr>";
+    $("#Request").html(html);
+}
 function displayHeaders(){
     html="<tr>"; 
     firstColumn = true;  
@@ -89,7 +101,8 @@ function displayHeaders(){
     $("#Heading").html(html);
 }
 function displayFilters(){
-    html=$("#Heading").html()+"<tr>"; 
+    html="";
+    //html=$("#Heading").html()+"<tr>"; 
     firstColumn = true;  
     var record = records[0];
     for (const col in record) {
@@ -102,7 +115,8 @@ function displayFilters(){
         }
     }  
     html=html+"</tr>";
-    $("#Heading").html(html);
+    //$("#Heading").html(html);
+    $("#Filter").html(html);
 }
 function displayRecords(){
     var html = "";  
@@ -154,7 +168,7 @@ function editRecord(id,row){
     if(oldID){
         if(recordChanged){
             if(confirm("Save changes ?")) {
-                saveRecord();
+                saveRecord(); 
                 //alert('Saved');
             }
             recordChanged = false;
