@@ -3,6 +3,8 @@
 <div style="margin:10px;">    
     <h3>{{$pageTitle}}</h3>
 {{ Form::open(array($pageURL)) }}
+    <?php echo csrf_field(); ?><!-- Required for Cross Platform AJAX -->
+    <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
     <div id="Request2">
     Pre-Sessional Year  <select name="Year" id="Year" class="Filter" onchange="this.form.submit();">
     @foreach($years as $y)<option @if($year == $y->Year) Selected @endif >{{$y->Year}}</option>
@@ -64,78 +66,17 @@ var filtered = records;
 var filter = []; // Used for record filter and edit options
 var oldID, oldRow = null;
 var recordChanged = false;
+var indexField = 'RowID';
 // Launch when document ready 
 $(document).ready(function(){
+    selectRecords();
     //displayRequest();
-    displayHeaders();
-    displayFilters();
-    loadFilters();
-    displayRecords(); 
+ //   displayHeaders();
+ //   displayFilters();
+ //   loadFilters();
+ //   displayRecords(); 
     //displayFooter();
 });    
-
-//$.fn.saveRecord = function(){
-function saveRecord() {
-    var recordData =  $("form").serialize();//'&'+
-    // Line added to ensure filter is passed back to page
-    //alert(recordData);
-    //$.ajaxSetup({ dataType: "json" });
-    $.ajax({
-        type: "GET",
-        url: "{{$saveURL}}",  // '//agmad.lnx.warwick.ac.uk/api/save',
-        data: recordData, 
-        contentType: 'application/x-www-form-urlencoded',
-        //crossDomain: true,
-        dataType: "json",
-        //jsonp: 'data',
-        //jsonpCallback: 'data',
-        //xhrFields: {// If you want to carry over the SSO token
-        //    withCredentials: true 
-        //},
-        success: function(data){
-            updateRecord(); // Write updated values back in to the local array
-            //alert('Group Saved!');
-        }, 
-        fail: function(responseTxt, statusTxt, xhr){
-            console.log(responseText);
-            alert('Group Save Failed!');
-        },
-        error: function(e) {
-            console.log(e.responseText);
-        }
-    });
-    alert(recordData);
-};
-
-function deleteRecord(row,id){
-    var recordData =  $("form").serialize();//'&'+
-    // Line added to ensure filter is passed back to page
-    //alert(recordData);
-    //$.ajaxSetup({ dataType: "json" });
-    $.ajax({
-        type: "POST",
-        url: "{{$deleteURL}}",
-        data: recordData, 
-        contentType: 'application/x-www-form-urlencoded',
-        dataType: "json",
-        success: function(data){
-            removeRecord(row); // Remove Data from local array
-            alert('Record Deleted!');
-        }, 
-        fail: function(responseTxt, statusTxt, xhr){
-            console.log(responseText);
-            alert('Record NOT Deleted!');
-        },
-        error: function(e) {
-            console.log(e.responseText);
-        }
-    });
-};
-
-function getFields(){
-    fields = records[0].getOwnPropertyNames();
-    alert(fields[0]);
-}
 /*
 function displayRequest(){  
     var record = (array) records[0];
@@ -145,7 +86,41 @@ function displayRequest(){
     html=html+"</th></tr>";
     $("#Request").html(html);
 }
-*/
+*/  
+function selectRecords() {
+    var formData =  $("form").serialize();
+    $.ajaxSetup({
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
+    });  
+    alert(recordData);
+    $.ajax({
+        type: 'POST',
+        url: "{{$selectURL}}",
+        data: formData,
+        dataType: 'jsonp',
+        //crossDomain: true,
+        timeout: 0,
+        jsonp: 'data',
+        jsonpCallback: 'data',
+        //xhrFields: {// If you want to carry over the SSO token
+        //    withCredentials: true 
+        //},
+        success: function(data){
+            alert(data);
+            records = data.records;
+            displayHeaders();
+            displayFilters();
+            loadFilters();
+            displayRecords(); 
+        },
+        fail: function(responseTxt, statusTxt, xhr){
+            if(statusTxt === "success")
+                alert("External content loaded successfully!");
+            if(statusTxt === "error")
+                alert("Error: " + xhr.status + ": " + xhr.statusText);
+        }
+    });
+};
 function displayHeaders(){
     html="<tr>"; 
     firstColumn = true;  
@@ -160,6 +135,16 @@ function displayHeaders(){
     }  
     html=html+"<td></td></tr>";
     $("#Heading").html(html);
+}
+function reorder(field){
+    // Function needs to be run twice as otherwise previous sort is reversed
+    filtered = filtered.sort(function(a,b){
+        return(a[field]>b[field]?1:-1);
+    });
+    filtered = filtered.sort(function(a,b){
+        return(a[field]>b[field]?1:-1);
+    });
+    displayRecords();
 }
 function displayFilters(){
     html="";
@@ -179,143 +164,6 @@ function displayFilters(){
     //$("#Heading").html(html);
     $("#Filter").html(html);
 }
-function displayRecords(){
-    var html = "";  
-    $("#RecordCount").html(filtered.length);
-    for (var row=0;row<filtered.length;++row) {  
-        html=html+displayRecord(row);
-    }
-    $("#Records").html(html);
-    addRecord();
-}
-function updateRecord(){
-    firstColumn = true;  
-    record = filtered[oldRow];
-    for (const col in record) {
-        if(firstColumn){
-             firstColumn = false;  
-        } else {
-            filtered[oldRow][col] = $("#txt"+`${col}`).val();
-            records[oldRow][col] = $("#txt"+`${col}`).val();
-        }
-    } 
-}
-function removeRecord(row){
-    records.splice(row,1);
-    displayRecords();
-}
-function displayRecord(row){
-    html=""; 
-    firstColumn = true;  
-    record = filtered[row];
-    for (const col in record) {
-        if(firstColumn){
-            html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
-            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+`${record[col]}`+"\" onclick=\"editRecord("+row+",'"+`${record[col]}`+"');\"></td>";
-            firstColumn = false;    
-        } else {
-            //html=html+"<td nowrap>"+`${record[col]}`+"</td>";
-            val = (record[col]==null?'':record[col]);
-            html=html+"<td nowrap>"+`${val}`+"</td>";
-        }
-    }   
-    html=html+"<td><input type=\"button\" value=\"X\" onclick=\"deleteRecord("+row+",'"+`${record[col]}`+"');\"></td>"";
-    html=html+"</tr>";   
-    return(html);
-}
-function viewRecord(row,id){
-    html=""; 
-    firstColumn = true;  
-    record = filtered[row];
-    for (const col in record) {
-        if(firstColumn){
-            //html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
-            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+`${record[col]}`+"\" onclick=\"editRecord("+row+",'"+`${record[col]}`+"');\"></td>";
-            firstColumn = false;    
-        } else {
-            //html=html+"<td nowrap>"+`${record[col]}`+"</td>";
-            val = (record[col]==null?'':record[col]);
-            html=html+"<td nowrap>"+`${val}`+"</td>";
-        }
-    }  
-    
-    html=html+"<td><input type=\"button\" value=\"X\" onclick=\"deleteRecord("+row+",'"+`${record[col]}`+"');\"></td>"";
-    //html=html+"</tr>";   
-    $("#Record-"+id).html(html);
-}
-
-function addRecord(){
-    oldID = null;
-    oldRow = null; 
-    html=""; 
-    firstColumn = true;  
-    record = filtered[0];
-    row = records.length+1;
-    for (const col in record) {
-        if(firstColumn){
-            html=html+"<tr id=\"Record-\">";
-            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\"\" onclick=\"editRecord("+row+",'');\"></td>";
-            firstColumn = false;    
-        } else {
-            html=html+"<td nowrap></td>";
-        }
-    }   
-    html=html+"<td><input type=\"button\" value=\"X\" onclick=\"deleteRecord("+row+",'');\"></td>"";
-    html=html+"</tr>";  
-    $("#Records").html($("#Records").html()+html);
-}
-
-function editRecord(row,id){
-    var options = [];
-    var newRecord = false;
-    if(oldID){
-        if(recordChanged){
-            //if(confirm("Save changes ?")) {
-                //saveRecord(); 
-                //alert('Saved');
-            //}
-            recordChanged = false;
-        }
-        //alert(oldID+"("+oldRow+") =>"+id);
-        viewRecord(oldRow,oldID); 
-    } 
-    oldID = id;
-    oldRow = row; 
-    html=""; 
-   
-    if(id===''){
-    //if(row>records.length){
-        newRecord = true;
-        record = filtered[0]; 
-    } else {
-        record = filtered[row]; 
-    }
-    firstColumn = true;    
-    for (const col in record) {
-        if(firstColumn){
-            //html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
-            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\"\" checked ></td>";
-            firstColumn = false;    
-        } else {
-            opts = filter[col+'s']; 
-            if(newRecord){
-                val = '';
-            } else {
-                val = (record[col]==null?'':record[col]);
-            }
-            html=html+"<td nowrap>"+Combo(col,opts,val)+"</td>";
-        } 
-    }     
-    html=html+"<td><input type=\"button\" value=\"X\" onclick=\"deleteRecord("+row+",'"+`${val}`+"');\"></td>"";
-    //alert(row+" > "+records.length);
-    $("#Record-"+id).html(html);
-}
-
-function selectRecord(id){ 
-    if(id!=''){
-        alert("Record: "+id);
-    }
-}
 function loadFilters(){
     // Load Filter Dropdowns 
     var record = records[0]; 
@@ -326,27 +174,25 @@ function loadFilters(){
         $("#qry"+col).empty().append($html).val(filter[col]);
     }
 }
-
-function reorder(field){
-    // Function needs to be run twice as otherwise previous sort is reversed
-    filtered = filtered.sort(function(a,b){
-        return(a[field]>b[field]?1:-1);
-    });
-    filtered = filtered.sort(function(a,b){
-        return(a[field]>b[field]?1:-1);
-    });
-    displayRecords();
-}
-
-function clearFilter(){
-    var record = records[0]; 
-    for (const col in record) {
-        $("#"+col).val('');
+function distinctlist(list,field){
+    var unique = [];
+    var distinct = [];
+    for( let i = 0; i < list.length; i++ ){
+        if( !unique[list[i][field]]){
+            distinct.push(list[i][field]);
+            unique[list[i][field]] = 1;
+        }
     }
-    filtered = records;
-    displayRecords();
+    return (distinct.sort());
 }
-
+function aOptions(opts,value) { // Uses a simple array of values
+    var result = '<option/>';
+    for (var index = 0; index < opts.length; ++index) {
+        val = (opts[index]==null?'[blank]':opts[index]);
+        result+="<option>"+val+"</option>";
+    }
+    return(result);
+}
 function filterRecords(){
     var record = records[0]; 
     //var filter = [];
@@ -370,49 +216,302 @@ function filterRecords(){
     }); 
     displayRecords();
 }
-
-function reorder(field){
-    // Function needs to be run twice as otherwise previous sort is reversed
-    records = records.sort(function(a,b){
-        return(a[field]  > b[field]?1:-1);
-    });
-    records = records.sort(function(a,b){
-        return(a[field]  > b[field]?1:-1);
-    });
+function clearFilter(){
+    var record = records[0]; 
+    for (const col in record) {
+        $("#"+col).val('');
+    }
+    filtered = records;
     displayRecords();
 }
-function aOptions(opts,value) { // Uses a simple array of values
-    var result = '<option/>';
-    for (var index = 0; index < opts.length; ++index) {
-        val = (opts[index]==null?'[blank]':opts[index]);
-        result+="<option>"+val+"</option>";
+function displayRecords(){
+    var html = "";  
+    $("#RecordCount").html(filtered.length);
+    for (var row=0;row<filtered.length;++row) {  
+        html=html+displayRecord(row);
     }
-    return(result);
+    $("#Records").html(html);
+    addRecord();
 }
-function distinctlist(list,field){
-    var unique = [];
-    var distinct = [];
-    for( let i = 0; i < list.length; i++ ){
-        if( !unique[list[i][field]]){
-            distinct.push(list[i][field]);
-            unique[list[i][field]] = 1;
+function displayRecord(row){
+    html=""; 
+    firstColumn = true;  
+    record = filtered[row];
+    for (const col in record) {
+        if(firstColumn){
+            html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
+            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+`${record[col]}`+"\" onclick=\"editRecord("+row+",'"+`${record[col]}`+"');\"></td>";
+            firstColumn = false;    
+        } else {
+            //html=html+"<td nowrap>"+`${record[col]}`+"</td>";
+            val = (record[col]==null?'':record[col]);
+            html=html+"<td nowrap>"+`${val}`+"</td>";
         }
-    }
-    return (distinct.sort());
+    }   
+    html=html+"<td></td>";
+    html=html+"</tr>";   
+    return(html);
 }
-/*********
- * Toggle *
- *********/
- function Toggle(field,value) {
+function addRecord(){
+    oldID = null;
+    oldRow = null; 
+    html=""; 
+    firstColumn = true;  
+    record = filtered[0];
+    row = records.length+1;
+    for (const col in record) {
+        if(firstColumn){
+            html=html+"<tr id=\"Record-\">";
+            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\"\" onclick=\"editRecord("+row+",'');\"></td>";
+            firstColumn = false;    
+        } else {
+            html=html+"<td nowrap></td>";
+        }
+    }   
+    html=html+"<td></td>";
+    html=html+"</tr>";  
+    $("#Records").html($("#Records").html()+html);
+}
+function editRecord(row,id){
+    checkRecord();
+    viewRecord(oldRow,oldID); 
+    oldID = id;
+    oldRow = row; 
+    var html=""; 
+    var options = [];
+    var newRecord = false;
+     if(id===''){
+    //if(row>records.length){
+        newRecord = true;
+        record = filtered[0]; 
+    } else {
+        record = filtered[row]; 
+    }
+    firstColumn = true;    
+    for (const col in record) {
+        if(newRecord){
+            val = '';
+        } else {
+            val = (record[col]==null?'':record[col]);
+        }
+        if(firstColumn){
+            indexField = col;
+            //html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
+            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+id+"\" checked ></td>";
+            //RowID = val;
+            firstColumn = false;    
+        } else {
+            opts = filter[col+'s']; 
+            html=html+"<td nowrap>"+Combo(col,opts,val)+"</td>";
+        } 
+    }     
+    html=html+"<td><input type=\"button\" value=\"X\" onclick=\"deleteRecord("+row+",'"+id+"');\"></td>";
+    //alert(row+" > "+records.length);
+    $("#Record-"+id).html(html);
+    $("#Record-"+id).parent().focusout(checkRecord());
+    //$("#Record-"+id).parent().blur(checkRecord());
+}
+function viewRecord(row,id){
+    html=""; 
+    firstColumn = true;  
+    record = filtered[row];
+    for (const col in record) {
+        if(firstColumn){
+            //html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
+            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+`${record[col]}`+"\" onclick=\"editRecord("+row+",'"+`${record[col]}`+"');\"></td>";
+            firstColumn = false;    
+        } else {
+            //html=html+"<td nowrap>"+`${record[col]}`+"</td>";
+            val = (record[col]==null?'':record[col]);
+            html=html+"<td nowrap>"+`${val}`+"</td>";
+        }
+    }  
+    html=html+"<td></td>";
+    //html=html+"</tr>";   
+    $("#Record-"+id).html(html);
+}
+function checkRecord(){
+    if(oldRow){
+       if(recordChanged){
+            if(oldID){
+                updateRecord(); 
+            } else {
+                insertRecord();
+            } 
+            backfilled(oldRow, oldID);
+            //refreshRecord(oldRow); 
+            viewRecord(oldRow,oldID); 
+            recordChanged = false; 
+            alert(oldID+"("+oldRow+") =>"+id);
+           
+       }
+       
+    }  
+}
+function updateRecord() {
+    var row = oldRow; // Copy of Row taken here as oldRow updated before ajax call returns
+    $("#"+indexField).val(oldID); // Put back old indexField value before serializing
+    //alert("#"+indexField+" = "+$("#"+indexField).val());
+    //$("form").refresh();
+    var recordData =  $("form").serialize();
+    
+    alert(recordData);
+    $("#"+indexField).val(id); // Replace new indexField value after serializing
+    // $("form").refresh();
+    var id = oldID;
+    // Line added to ensure filter is passed back to page
+    alert(recordData);
+    //$.ajaxSetup({ dataType: "json" });
+    $.ajax({
+        type: "GET",
+        url: "{{$updateURL}}",  // '//agmad.lnx.warwick.ac.uk/api/save',
+        data: recordData, 
+        contentType: 'application/x-www-form-urlencoded',
+        //crossDomain: true,
+        dataType: "json",
+        //jsonp: 'data',
+        //jsonpCallback: 'data',
+        //xhrFields: {// If you want to carry over the SSO token
+        //    withCredentials: true 
+        //},
+        success: function(data){  
+            //backfillRecord(row,id);
+            //refreshRecord(row); // Write updated values back in to the local array
+            //viewRecord(row,id); 
+            alert('Group Saved!');
+        }, 
+        fail: function(responseTxt, statusTxt, xhr){
+            console.log(responseText);
+            alert('Group Save Failed!');
+        },
+        error: function(e) {
+            console.log(e.responseText);
+        }
+    });
+    alert(recordData);
+};
+function refreshRecord(row){
+    firstColumn = true;  
+    record = filtered[row];
+    for (const col in record) {
+        if(firstColumn){
+             firstColumn = false;  
+        } else {
+            filtered[row][col] = $("#txt"+`${col}`).val();
+            // Note: row only applies to filtered not records
+            // records[row][col] = $("#txt"+`${col}`).val();
+        }
+    } 
+    alert('Record Refreshed!');
+}
+function backfillRecord(row,id){
+    // Scroll Through Records 
+    var recordFound = false;
+    for (var r=0;r<records.length;++r) {
+        // Check each first col against id 
+        firstColumn = true; 
+        for (const col in records[r]) {
+            if(firstColumn){
+                if(records[r][col]===id) {
+                    recordFound = true;  
+                } else {
+                    exit;
+                }
+            } else {
+               record[r][col] = $("#txt"+`${col}`).val();
+           }
+       }
+       if(recordFound){
+           exit;
+       }
+    }
+    alert('Record Backfilled!');
+}
+function insertRecord(row,id){
+    if(confirm("Insert record ?")) {
+    var recordData =  $("form").serialize();
+    // Line added to ensure filter is passed back to page
+    //alert(recordData);
+    //$.ajaxSetup({ dataType: "json" });
+    $.ajax({
+        type: "GET",
+        url: "{{$insertURL}}",
+        data: recordData, 
+        contentType: 'application/x-www-form-urlencoded',
+        dataType: "json",
+        success: function(data){
+            records[row] = records[0];
+            //records[row][indexField] = id;
+            //refreshRecord(row);
+            displayRecords; // Remove Data from local array
+            //alert('Record Inserted!');
+        }, 
+        fail: function(responseTxt, statusTxt, xhr){
+            console.log(responseText);
+            alert('Record NOT Inserted!');
+        },
+        error: function(e) {
+            console.log(e.responseText);
+        }
+    });
+    }
+};
+function deleteRecord(row,id){
+    if(confirm("Delete record ?")) {
+    var recordData =  $("form").serialize();
+    // Line added to ensure filter is passed back to page
+    //alert(recordData);
+    //$.ajaxSetup({ dataType: "json" });
+    $.ajax({
+        type: "GET",
+        url: "{{$deleteURL}}",
+        data: recordData, 
+        contentType: 'application/x-www-form-urlencoded',
+        dataType: "json",
+        success: function(data){
+            removeRecord(row); // Remove Data from local array
+            displayRecords();
+            //alert('Record Deleted!');
+        }, 
+        fail: function(responseTxt, statusTxt, xhr){
+            console.log(responseText);
+            alert('Record NOT Deleted!');
+        },
+        error: function(e) {
+            console.log(e.responseText);
+        }
+    });
+    }
+};
+function removeRecord(row){
+    records.splice(row,1);
+    displayRecords();
+}
+
+
+
+
+
+/*
+function getFields(){
+    fields = records[0].getOwnPropertyNames();
+    alert(fields[0]);
+}
+function selectRecord(id){ 
+    if(id!=''){
+        alert("Record: "+id);
+    }
+}
+function Toggle(field,value) {
     var item, opts = {};
     var result='<select class="Toggle" id="txt'+field+'" >';	
     result+='<option value="N">No</option><option value="Y">Yes</option></select>';
     return(result);
 }
- /********
- * Alist * Little pair of functions to create and work a Combo class 
- ********/
- function Alist(field,options,value) {
+
+
+// Little pair of functions to create and work a Combo class 
+function Alist(field,options,value) {
     var item, opts = {};
     if(typeof(value) == "undefined"){value='';}
     var result='<input class="Alist" type="text" id="txt'+field+'" name="txt'+field+'" value="'+value+'" onchange="oAlist(this);" style="display:none;"/>'
@@ -463,14 +562,14 @@ function distinctlist(list,field){
         }
     }
     
-}	
-/********
-* COMBO * Little pair of functions to create and work a Combo class 
-********/
+}
+*/
+
+// Little pair of functions to create and work a Combo class 
 function Combo(field,options,value) {
     var item, opts = {};
     if(typeof(value) == "undefined"){value='';}
-    var result='<input class="Combo" type="text" id="txt'+field+'" name="txt'+field+'" value="'+value+'" onchange="saveRecord(); //recordChanged = true;"/>'
+    var result='<input class="Combo" type="text" id="txt'+field+'" name="txt'+field+'" value="'+value+'" onchange="recordChanged = true;"/>'
         +'<input class="Combo" type="button" id="btn'+field+'" value="V" onclick="oCombo(this);" />'
         +'<select class="Combo"id="lst'+field+'" onchange="oCombo(this);" style="display:none;">';	
     opts = options;
@@ -512,7 +611,7 @@ function oCombo(obj) {
         $(lst).hide();
         $(btn).show();
     }
-    saveRecord(); 
+    //updateRecord(); 
     //alert('Saved');
     recordChanged = true;
 }	
@@ -536,7 +635,8 @@ function Options(field,options,value) {
 function confirmSave() {
     var retVal = confirm("Save changes ?");
     if( retVal == true ) {
-       saveRecord(); 
+       recordChanged = true;
+       //updateRecord(); 
        return true;
     } else {
       // document.write ("User does not want to continue!");
