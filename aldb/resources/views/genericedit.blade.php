@@ -3,8 +3,8 @@
 <div style="margin:10px;">    
     <h3>{{$pageTitle}}</h3>
 {{ Form::open(array($pageURL)) }}
-    <?php echo csrf_field(); ?><!-- Required for Cross Platform AJAX -->
-    <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
+    <?php //echo csrf_field(); ?><!-- Required for Cross Platform AJAX -->
+    <!--<input type="hidden" name="_Token" value="<?php echo csrf_token(); ?>">-->
     <div id="Request2">
     Pre-Sessional Year  <select name="Year" id="Year" class="Filter" onchange="this.form.submit();">
     @foreach($years as $y)<option @if($year == $y->Year) Selected @endif >{{$y->Year}}</option>
@@ -69,12 +69,12 @@ var recordChanged = false;
 var indexField = 'RowID';
 // Launch when document ready 
 $(document).ready(function(){
-    selectRecords();
+    //selectRecords();
     //displayRequest();
- //   displayHeaders();
- //   displayFilters();
- //   loadFilters();
- //   displayRecords(); 
+    displayHeaders();
+    displayFilters();
+    loadFilters();
+    displayRecords(); 
     //displayFooter();
 });    
 /*
@@ -89,22 +89,22 @@ function displayRequest(){
 */  
 function selectRecords() {
     var formData =  $("form").serialize();
-    $.ajaxSetup({
-        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
-    });  
+    //$.ajaxSetup({
+    //    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
+    //});  
     alert(recordData);
     $.ajax({
         type: 'POST',
         url: "{{$selectURL}}",
         data: formData,
         dataType: 'jsonp',
-        //crossDomain: true,
+        crossDomain: true,
         timeout: 0,
         jsonp: 'data',
         jsonpCallback: 'data',
-        //xhrFields: {// If you want to carry over the SSO token
-        //    withCredentials: true 
-        //},
+        xhrFields: {// If you want to carry over the SSO token
+            withCredentials: true 
+        },
         success: function(data){
             alert(data);
             records = data.records;
