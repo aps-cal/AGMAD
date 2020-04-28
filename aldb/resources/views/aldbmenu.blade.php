@@ -2,7 +2,297 @@
 @section('content')
 <div class="container">
     <h1>ALDB</h1>
-    
+    <div id="mainNavWrapper" class="nav-wrapper" data-content-field="navigation-mainNav">
+    <nav id="mainNavigation" data-content-field="navigation-mainNav">
+      
+
+      
+        
+          
+
+          
+
+            
+            <div class="collection homepage">
+              <a href="/">
+                Home
+              </a>
+            </div>
+            
+
+          
+        
+        
+
+      
+        
+          
+
+          
+          <div class="folder active">
+            <div class="folder-toggle" data-href="/about">About</div>
+            <div class="subnav">
+            
+
+              
+              <div class="collection active">
+                <a href="/vision-and-values">
+                  Vision and Values
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/meet-the-team-1">
+                  Meet the Team
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/baptisms-and-weddings">
+                  Baptisms and Weddings
+                </a>
+              </div>
+              
+              
+            
+            </div>
+          </div>
+          
+        
+        
+
+      
+        
+          
+
+          
+          <div class="folder">
+            <div class="folder-toggle" data-href="/connect-1">Connect</div>
+            <div class="subnav">
+            
+
+              
+              <div class="collection">
+                <a href="/communities-of-mission">
+                  Communities of Mission
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/kids-and-youth">
+                  Kids & Youth
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/students">
+                  Students
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/older-people">
+                  Older People
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/women">
+                  Women
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/form">
+                  FORM
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/alpha">
+                  Alpha
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/2s-3s">
+                  2s & 3s
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/prayer-and-prophecy">
+                  Prayer and Prophecy
+                </a>
+              </div>
+              
+              
+            
+            </div>
+          </div>
+          
+        
+        
+
+      
+        
+          
+
+          
+          <div class="folder">
+            <div class="folder-toggle" data-href="/sundays">Sundays</div>
+            <div class="subnav">
+            
+
+              
+              <div class="collection">
+                <a href="/church-live-stream">
+                  Church Live Stream
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/st-johns-sundays">
+                  St John's Sundays
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/talks">
+                  Talks
+                </a>
+              </div>
+              
+              
+            
+            </div>
+          </div>
+          
+        
+        
+
+      
+        
+          
+
+          
+
+            
+            <div class="collection">
+              <a href="/give">
+                Give
+              </a>
+            </div>
+            
+
+          
+        
+        
+
+      
+        
+          
+
+          
+
+            
+            <div class="collection">
+              <a href="/safeguarding">
+                Safeguarding
+              </a>
+            </div>
+            
+
+          
+        
+        
+
+      
+        
+          
+
+          
+          <div class="folder">
+            <div class="folder-toggle" data-href="/contact">Contact</div>
+            <div class="subnav">
+            
+
+              
+              <div class="collection">
+                <a href="/contact-us">
+                  Contact Us
+                </a>
+              </div>
+              
+              
+            
+
+              
+              <div class="collection">
+                <a href="/car-park-park-with-us">
+                  Car Park - Park with us
+                </a>
+              </div>
+              
+              
+            
+            </div>
+          </div>
+          
+        
+        
+
+      
+    </nav>
+  </div>
 </div>
 @endsection
     
