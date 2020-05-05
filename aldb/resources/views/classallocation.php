@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>SITS Students</title>
+        <title>Class Allocation</title>
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
@@ -50,11 +50,11 @@
         
         <script type="text/javascript" src="ps/js/app.js"></script>
   
-         {{ Form::open(array('route' => 'sits.students')) }}
+         {{ Form::open(array('route' => 'sits.classallocation')) }}
             <div class="content">
                 <table border="1" >
                     <tr>
-                        <th colspan=2>Year 
+                        <th colspan=2>Academic Year 
                             <select name="Academic_Year" id="Academic_Year" class="Filter" onchange="this.form.submit();">
                                 @foreach($acadYears as $yearItem) 
                                 <option
@@ -63,6 +63,28 @@
                                     @endif>{{$yearItem->Academic_Year}}</option>
                                 @endforeach
                             </select></th>
+                            <th>Phase 
+            
+                             <select name="Phase" id="Phase" class="Filter" onchange="this.form.submit();">
+                                @foreach ($phases as $p) 
+                                <option
+                                    @if ($phase == $p->Phase_No)
+                                         Selected
+                                    @endif>{{$p->Phase_No}}</option>
+                                @endforeach
+                             </select></th>
+                             
+                             <th>Group 
+            
+                             <select name="Group" id="Group" class="Filter" ">
+                                @foreach ($groups as $groupitem) 
+                                <option
+                                    @if ($group == $groupitem->Group_No)
+                                         Selected
+                                    @endif>{{$groupitem->Group_No}}</option>
+                                @endforeach
+                             </select></th>
+                             
                     </tr>
                     <tr>
                          <th>acad_year</th>
@@ -86,6 +108,7 @@
                          <th>course</th>
                          <th>stage</th>
                          <th>dept_code</th>
+                         <th>spr_code</th>
                          <th>phase_4</th>
                          <th>phase_5</th>
                          <th>firm</th>
@@ -116,6 +139,7 @@
                         <td>{{$student->course}}</td>
                         <td>{{$student->stage}}</td>
                         <td>{{$student->dept_code}}</td>
+                        <td>{{$student->spr_code}}</td>
                         <td>{{$student->phase_4}}</td>
                         <td>{{$student->phase_5}}</td>
                         <td>{{$student->firm}}</td>

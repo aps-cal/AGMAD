@@ -244,7 +244,7 @@ function markRegister(obj, stu, day, cls, note){
     //$("Note").val('');
 }
 function updateRegister(){ 
-    var formData =  $("form").serialize();
+    var formData =  $("form").serialize(); 
     //formData['Student_No']=stu;
     //formData['Day_No']=day;
     //formData['Class']=cls;

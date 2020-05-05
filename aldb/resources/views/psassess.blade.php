@@ -109,9 +109,9 @@ use Illuminate\Html\FormFacade;
                             <select name="Year" id="Year" class="Filter" onchange="this.form.submit();">
                                 @foreach($years as $yearitem) 
                                 <option
-                                    @if ($year == $yearitem->PS_Year)
+                                    @if ($year == $yearitem->Year)
                                          Selected
-                                    @endif>{{$yearitem->PS_Year}}</option>
+                                    @endif>{{$yearitem->Year}}</option>
                                 @endforeach
                             </select></th>
                          <th>Group 

@@ -3,6 +3,8 @@
 <div style="margin:10px;">    
     <h3>{{$pageTitle}}</h3>
 {{ Form::open(array($pageURL)) }}
+    <?php //echo csrf_field(); ?><!-- Required for Cross Platform AJAX -->
+    <!--<input type="hidden" name="_Token" value="<?php echo csrf_token(); ?>">-->
     <div id="Request2">
     Pre-Sessional Year  <select name="Year" id="Year" class="Filter" onchange="this.form.submit();">
     @foreach($years as $y)<option @if($year == $y->Year) Selected @endif >{{$y->Year}}</option>
@@ -32,7 +34,7 @@
             </tbody>
             <tfoot id="Footer" style="height:50px;">
                 
-            </tfoot>
+            </tfoot> 
         </table>
 
     </div>
@@ -66,9 +68,10 @@ var oldID, oldRow = null;
 var recordChanged = false;
 var indexField = 'RowID';
 // Launch when document ready 
-$(document).ready(function(){
+$(document).ready(function(){ 
+    //selectRecords();
     //displayRequest();
-    displayHeaders(); 
+    displayHeaders();
     displayFilters();
     loadFilters();
     displayRecords(); 
@@ -83,7 +86,41 @@ function displayRequest(){
     html=html+"</th></tr>";
     $("#Request").html(html);
 }
-*/
+*/  
+function selectRecords() {
+    var formData =  $("form").serialize();
+    //$.ajaxSetup({
+    //    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
+    //});  
+    alert(recordData);
+    $.ajax({
+        type: 'POST',
+        url: "{{$selectURL}}",
+        data: formData,
+        dataType: 'jsonp',
+        crossDomain: true,
+        timeout: 0,
+        jsonp: 'data',
+        jsonpCallback: 'data',
+        xhrFields: {// If you want to carry over the SSO token
+            withCredentials: true 
+        },
+        success: function(data){
+            alert(data);
+            records = data.records;
+            displayHeaders();
+            displayFilters();
+            loadFilters();
+            displayRecords(); 
+        },
+        fail: function(responseTxt, statusTxt, xhr){
+            if(statusTxt === "success")
+                alert("External content loaded successfully!");
+            if(statusTxt === "error")
+                alert("Error: " + xhr.status + ": " + xhr.statusText);
+        }
+    });
+};
 function displayHeaders(){
     html="<tr>"; 
     firstColumn = true;  
@@ -271,8 +308,8 @@ function editRecord(row,id){
     html=html+"<td><input type=\"button\" value=\"X\" onclick=\"deleteRecord("+row+",'"+id+"');\"></td>";
     //alert(row+" > "+records.length);
     $("#Record-"+id).html(html);
-    //$("#Record-"+id).parent().focusout(checkRecord());
-    $("#Record-"+id).parent().blur(checkRecord());
+    $("#Record-"+id).parent().focusout(checkRecord());
+    //$("#Record-"+id).parent().blur(checkRecord());
 }
 function viewRecord(row,id){
     html=""; 
@@ -315,12 +352,12 @@ function updateRecord() {
     var row = oldRow; // Copy of Row taken here as oldRow updated before ajax call returns
     $("#"+indexField).val(oldID); // Put back old indexField value before serializing
     //alert("#"+indexField+" = "+$("#"+indexField).val());
-    $("form").refresh();
+    //$("form").refresh();
     var recordData =  $("form").serialize();
     
     alert(recordData);
     $("#"+indexField).val(id); // Replace new indexField value after serializing
-    $("form").refresh();
+    // $("form").refresh();
     var id = oldID;
     // Line added to ensure filter is passed back to page
     alert(recordData);

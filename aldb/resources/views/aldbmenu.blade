@@ -1,8 +1,6 @@
 @extends('layouts.pse')
 @section('content')
-<div class="container">
-    <h1>ALDB Menu </h1>
-    <div id="mainNavWrapper" class="nav-wrapper" data-content-field="navigation-mainNav">
+ <div id="mainNavWrapper" class="nav-wrapper" data-content-field="navigation-mainNav">
     <nav id="mainNavigation" data-content-field="navigation-mainNav">
       
 
@@ -293,8 +291,13 @@
       
     </nav>
   </div>
-</div>
+
 @endsection
-    
+@section('script')
+<script>
+$(document).ready(function(){
+   
+});   
 
-
+</script>
+@endsection

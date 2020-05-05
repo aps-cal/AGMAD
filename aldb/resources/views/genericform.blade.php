@@ -3,63 +3,43 @@
 <div style="margin:10px;">    
     <h3>{{$pageTitle}}</h3>
 {{ Form::open(array($pageURL)) }}
-    <div id="Request2">
+    <div id="Request">
+    @if($years!=null)
     Pre-Sessional Year  <select name="Year" id="Year" class="Filter" onchange="this.form.submit();">
     @foreach($years as $y)<option @if($year == $y->Year) Selected @endif >{{$y->Year}}</option>
     @endforeach
-    </select>  &nbsp; <!--
-    Academic Year  <select name="Academic_Year" id="Academic_Year" class="Filter" onchange="this.form.submit();">
-    @foreach($acadYears as $a)<option @if($acadYear == $a->Academic_Year) Selected @endif >{{$a->Academic_Year}}</option>
-    @endforeach
-    </select>  &nbsp; -->
-    Phase No <select name="Phase_No" id="Phase_No" class="Filter" onchange="this.form.submit();">
+    </select>  &nbsp;
+    @endif
+    @if($phases!=null)
+    Phase No <select name="Phase" id="Phase_No" class="Filter" onchange="this.form.submit();">
     @foreach($phases as $p)<option @if($phase == $p->Phase_No) Selected @endif >{{$p->Phase_No}}</option>
     @endforeach
     </select>
+    @endif
     Records: <span id="RecordCount"></span>
     </div>
-    <div>
-        <table >
-            <thead id="Request" style="height:50px; "><!--class="scrolling_table" -->
-            </thead>
-            <thead id="Heading" style="height:50px; "><!--class="scrolling_table" -->
-                
-            </thead>
-            <thead id="Filter" style="height:50px; "><!--class="scrolling_table" -->
-            </thead>
-            <tbody id="Records" style="max-height:300px; overflow: auto;">
-                
-            </tbody>
-            <tfoot id="Footer" style="height:50px;">
-                
-            </tfoot>
+    <div id="list">
+        <table class="striped" style="float:left;">
+            <thead id="Heading" style="height:50px;"><!--class="scrolling_table" --></thead>
+            <thead id="Filter" style="height:50px; "><!--class="scrolling_table" --></thead>
+            <tbody id="Records" style="max-height:300px; overflow: auto;"></tbody>
+            <tfoot id="Footer" style="height:50px;"></tfoot>
         </table>
 
     </div>
-    
-{{ Form::close() }}
-    <!--<div id="editmenu" style="
-    position: absolute;
-    top: 0px;
-    left: 0%;
-    height: 500px;
-    width: 500px;
-    //z-index: 99;
-    ">
-        <input type="button" value="Cancel" />
-        <input type="button" value="SAVE" />
-    </div>  -->
-    <div id="display"></div>    
+    <div id="edit" style="float:left;">
+    </div>
+    <div id="display" style="float:left;"></div>    
 </div>
-
+{{ Form::close() }}
 @endsection
 
 @section('script')
 <script type="text/javascript">// <![CDATA[
-
+    
 //Load variables and arrays
 var id = null;
-var records = <?php echo json_encode($records, JSON_OBJECT_AS_ARRAY); ?>;
+var records = []; //= <?php //echo json_encode($records, JSON_OBJECT_AS_ARRAY); ?>;
 var filtered = records;
 var filter = []; // Used for record filter and edit options
 var oldID, oldRow = null;
@@ -67,11 +47,12 @@ var recordChanged = false;
 var indexField = 'RowID';
 // Launch when document ready 
 $(document).ready(function(){
+    selectRecords();
     //displayRequest();
-    displayHeaders(); 
-    displayFilters();
-    loadFilters();
-    displayRecords(); 
+    //displayHeaders();
+    //displayFilters();
+    //loadFilters();
+    //displayRecords(); 
     //displayFooter();
 });    
 /*
@@ -84,6 +65,44 @@ function displayRequest(){
     $("#Request").html(html);
 }
 */
+function selectRecords() {
+    var formData =  $("form").serialize();
+    $.ajaxSetup({
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
+    });  
+    $("#Records").html("<H4> &nbsp; Loading Data ... Please Wait &nbsp; </h4>");
+    $.ajax({
+        method: 'POST',
+        url: "{{$selectURL}}",
+        data: formData,
+        dataType: 'json',
+        crossDomain: false,
+        timeout: 0,
+        jsonp: 'data',
+        jsonpCallback: 'data',
+        //xhrFields: {// If you want to carry over the SSO token
+        //    withCredentials: true 
+        //},
+        success: function(data){          
+            records =  data.records;
+            //filtered = records;
+            //console.log(records);
+            //alert(records[2]['RowID']);
+            displayHeaders();
+            displayFilters();
+            filterRecords();
+            loadFilters();
+            clearFilters();
+            //displayRecords(); 
+        }, 
+        fail: function(responseTxt, statusTxt, xhr){
+            if(statusTxt === "success")
+                alert("External content loaded successfully!");
+            if(statusTxt === "error")
+                alert("Error: " + xhr.status + ": " + xhr.statusText);
+        }
+    });
+};
 function displayHeaders(){
     html="<tr>"; 
     firstColumn = true;  
@@ -91,7 +110,7 @@ function displayHeaders(){
     for (const col in record) { 
         if(firstColumn){
             firstColumn = false;  
-            html=html+"<th><input type=\"button\" value=\"Clr\" onclick=\"clearFilter();\" style=\"width: 100%;\"></th>";
+            html=html+"<th><input type=\"button\" value=\"Clr\" onclick=\"clearFilters();\" style=\"width: 100%;\"></th>";
         } else {
             html=html+"<th><input type=\"button\" value=\""+`${col}`+"\" onclick=\"reorder('"+`${col}`+"');\" style=\"width: 100%;\"></th>";
         }
@@ -117,7 +136,7 @@ function displayFilters(){
     for (const col in record) {
         if(firstColumn){
             firstColumn = false;  
-            html=html+"<td><input Name=\""+`${col}`+"\" id=\""+`${col}`+"\" type=\"radio\" value=\"\" onclick=\"displayRecords();\"></td>";  
+            html=html+"<tr><td><input Name=\""+`${col}`+"\" id=\""+`${col}`+"\" type=\"radio\" value=\"\" onclick=\"displayRecords();\"></td>";  
         } else {
             html=html+"<td><select class=\"filter\" name=\"qry"+`${col}`+"\" id=\"qry"+`${col}`+"\" onChange=\"filterRecords();\">"
             +"<option></option></select></td>";
@@ -179,10 +198,10 @@ function filterRecords(){
     }); 
     displayRecords();
 }
-function clearFilter(){
+function clearFilters(){
     var record = records[0]; 
     for (const col in record) {
-        $("#"+col).val('');
+        $("#qry"+col).val('');
     }
     filtered = records;
     displayRecords();
@@ -194,6 +213,7 @@ function displayRecords(){
         html=html+displayRecord(row);
     }
     $("#Records").html(html);
+    hideForm();
     addRecord();
 }
 function displayRecord(row){
@@ -203,7 +223,9 @@ function displayRecord(row){
     for (const col in record) {
         if(firstColumn){
             html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
-            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+`${record[col]}`+"\" onclick=\"editRecord("+row+",'"+`${record[col]}`+"');\"></td>";
+            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+`${record[col]}`+"\" "
+            //+"onclick=\"editRecord("+row+",'"+`${record[col]}`+"');\"></td>";
+            +"onclick=\"showForm("+row+",'"+`${record[col]}`+"');\"></td>";
             firstColumn = false;    
         } else {
             //html=html+"<td nowrap>"+`${record[col]}`+"</td>";
@@ -225,7 +247,9 @@ function addRecord(){
     for (const col in record) {
         if(firstColumn){
             html=html+"<tr id=\"Record-\">";
-            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\"\" onclick=\"editRecord("+row+",'');\"></td>";
+            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\"\" "
+            +"onclick=\"showForm("+row+",'');\"></td>";
+            //+"onclick=\"editRecord("+row+",'');\"></td>";
             firstColumn = false;    
         } else {
             html=html+"<td nowrap></td>";
@@ -236,52 +260,128 @@ function addRecord(){
     $("#Records").html($("#Records").html()+html);
 }
 function editRecord(row,id){
-    checkRecord();
-    viewRecord(oldRow,oldID); 
-    oldID = id;
-    oldRow = row; 
-    var html=""; 
-    var options = [];
-    var newRecord = false;
-     if(id===''){
-    //if(row>records.length){
-        newRecord = true;
-        record = filtered[0]; 
+    //checkRecord();
+    if(recordChanged){
+        $(indexField).val(oldID);
+        //$('#Record-'+oldRow).focus();   
     } else {
-        record = filtered[row]; 
-    }
-    firstColumn = true;    
-    for (const col in record) {
-        if(newRecord){
-            val = '';
-        } else {
-            val = (record[col]==null?'':record[col]);
+        if(oldRow){
+            viewRecord(oldRow,oldID);
         }
-        if(firstColumn){
-            indexField = col;
-            //html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
-            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+id+"\" checked ></td>";
-            //RowID = val;
-            firstColumn = false;    
+        //$('#'+indexField).prop("disabled", true);
+        oldID = id;
+        oldRow = row; 
+        var html=""; 
+        var options = [];
+        var newRecord = false;
+         if(id===''){
+        //if(row>records.length){
+            newRecord = true;
+            record = filtered[0]; 
         } else {
-            opts = filter[col+'s']; 
-            html=html+"<td nowrap>"+Combo(col,opts,val)+"</td>";
-        } 
-    }     
-    html=html+"<td><input type=\"button\" value=\"X\" onclick=\"deleteRecord("+row+",'"+id+"');\"></td>";
-    //alert(row+" > "+records.length);
-    $("#Record-"+id).html(html);
-    //$("#Record-"+id).parent().focusout(checkRecord());
-    $("#Record-"+id).parent().blur(checkRecord());
+            record = filtered[row]; 
+        }
+        firstColumn = true;    
+        for (const col in record) {
+            if(newRecord){
+                val = '';
+            } else {
+                val = (record[col]==null?'':record[col]);
+            }
+            if(firstColumn){
+                indexField = col;
+                //html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
+                html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+id+"\" checked ></td>";
+                //RowID = val;
+                firstColumn = false;    
+            } else {
+                opts = filter[col+'s']; 
+                html=html+"<td nowrap>"+Combo(col,opts,val)+"</td>";
+            } 
+        }     
+        html=html+"<td>"
+            +"<input type=\"button\" value=\"Save\" onclick=\"updateRecord("+row+",'"+id+"');\">"
+            +"<input type=\"button\" value=\"Delete\" onclick=\"deleteRecord("+row+",'"+id+"');\">"
+            +"</td>";
+        //alert(row+" > "+records.length);
+        $("#Record-"+id).html(html);
+        // Adjust width of all Combo Text fields
+        for (const col in record) {
+            $("#txt"+col).width($("#qry"+col).width()-$("#btn"+col).width());
+        }
+        //$("#Record-"+id).parent().focusout(checkRecord("+row+",'"+id+"'));
+        //$("#Record-"+id).parent().focusout(checkRecord());
+        //$("#Record-"+id).parent().blur(checkRecord());
+    }
+}
+function showForm(row,id){
+    if(recordChanged){
+        $(indexField).val(oldID);
+        //$('#Record-'+oldRow).focus();   
+    } else {
+ //       if(oldRow){
+ //           viewRecord(oldRow,oldID);
+ //       }
+        oldID = id;
+        oldRow = row; 
+        var html="<table>";
+        //var options = [];
+        var newRecord = false;
+        if(id===''){
+        //if(row>records.length){
+            newRecord = true;
+            record = filtered[0]; 
+        } else {
+            record = filtered[row]; 
+        }
+        firstColumn = true;
+        var cols=0;
+        for (const col in record) {
+            if(newRecord){
+                val = '';
+            } else {
+                val = (record[col]==null?'':record[col]);
+            }
+            if(firstColumn){
+                indexField = col;
+                html+="<tr><td><b>EDIT RECORD</b></td><td style=\"align:right;\"><small>"+`${col}`+" : "+id+"</small></td></tr>";
+                //RowID = val;
+                firstColumn = false;    
+            } else {
+                opts = filter[col+'s']; 
+                html+="<tr><td>"+`${col}`+"</td><td>"+Combo(col,opts,val)+"</td></tr>";
+            } 
+            cols++;
+        }     
+        html+="<tr><td colspan=\""+cols+"\" align=\"right\" style=\"text-align:right;\">"
+            +"<input type=\"button\" value=\"Cancel\" onclick=\"hideForm("+row+",'"+id+"');\">"
+            +"<input type=\"button\" value=\"Delete\" onclick=\"deleteRecord("+row+",'"+id+"');\">"
+            +"<input type=\"button\" value=\"SAVE\" onclick=\"updateRecord("+row+",'"+id+"');\">"
+            +"</td></tr>";
+        
+        html+="</table>";
+        $("#edit").html(html);
+        $(".Selected").removeClass('Selected');
+        $("#Record-"+id).addClass('Selected'); 
+        //alert(row+" > "+records.length);
+    }
+}
+function hideForm(){
+    $("#edit").html('');
+    $("#"+indexField).val(null);
+    $(".Selected").removeClass('Selected');
 }
 function viewRecord(row,id){
     html=""; 
     firstColumn = true;  
     record = filtered[row];
+    recordChanged = false;
     for (const col in record) {
         if(firstColumn){
             //html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
-            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+`${record[col]}`+"\" onclick=\"editRecord("+row+",'"+`${record[col]}`+"');\"></td>";
+            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+`${record[col]}`+"\" "
+                +"onclick=\"showForm("+row+",'"+`${record[col]}`+"');\"></td>";
+                //+"onclick=\"editRecord("+row+",'"+`${record[col]}`+"');\"></td>";
             firstColumn = false;    
         } else {
             //html=html+"<td nowrap>"+`${record[col]}`+"</td>";
@@ -292,10 +392,20 @@ function viewRecord(row,id){
     html=html+"<td></td>";
     //html=html+"</tr>";   
     $("#Record-"+id).html(html);
+    //$('#'+indexField).prop("disabled", false);
 }
 function checkRecord(){
     if(oldRow){
        if(recordChanged){
+           if(confirm('Record NOT Saved!\nLOSE CHANGES?')){
+               recordChanged = false;
+               viewRecord(oldRow,oldID); 
+           } else {
+               $("#"+indexField).val(oldID);
+               $("#Record-"+oldID).focus();
+               alert("#Record-"+oldID+'=('+indexField+')'+$("#"+indexField).val()); 
+           }
+           /*
             if(oldID){
                 updateRecord(); 
             } else {
@@ -306,42 +416,32 @@ function checkRecord(){
             viewRecord(oldRow,oldID); 
             recordChanged = false; 
             alert(oldID+"("+oldRow+") =>"+id);
-           
+           */
        }
        
     }  
 }
+
+
 function updateRecord() {
-    var row = oldRow; // Copy of Row taken here as oldRow updated before ajax call returns
-    $("#"+indexField).val(oldID); // Put back old indexField value before serializing
-    //alert("#"+indexField+" = "+$("#"+indexField).val());
-    $("form").refresh();
-    var recordData =  $("form").serialize();
-    
-    alert(recordData);
-    $("#"+indexField).val(id); // Replace new indexField value after serializing
-    $("form").refresh();
+    var row = oldRow; 
     var id = oldID;
-    // Line added to ensure filter is passed back to page
-    alert(recordData);
-    //$.ajaxSetup({ dataType: "json" });
+    var data = dataRecord();
     $.ajax({
-        type: "GET",
+        type: "POST",
         url: "{{$updateURL}}",  // '//agmad.lnx.warwick.ac.uk/api/save',
-        data: recordData, 
+        data: data, 
         contentType: 'application/x-www-form-urlencoded',
         //crossDomain: true,
         dataType: "json",
-        //jsonp: 'data',
-        //jsonpCallback: 'data',
-        //xhrFields: {// If you want to carry over the SSO token
-        //    withCredentials: true 
-        //},
+        jsonp: 'data',
+        jsonpCallback: 'data',
         success: function(data){  
-            //backfillRecord(row,id);
-            //refreshRecord(row); // Write updated values back in to the local array
-            //viewRecord(row,id); 
-            alert('Group Saved!');
+            recordChanged = false;
+            refreshRecord(row); // Write updated values back in to the local array
+        //    viewRecord(row,id); 
+            hideForm();
+ //           selectRecords();
         }, 
         fail: function(responseTxt, statusTxt, xhr){
             console.log(responseText);
@@ -351,8 +451,28 @@ function updateRecord() {
             console.log(e.responseText);
         }
     });
-    alert(recordData);
 };
+
+function dataRecord(){
+    var formData = "";
+//    formData+="Year="+$("#Year").val();
+//    formData+="&Phase_No="+$("#Phase_No").val();
+    firstColumn = true;  
+    record = filtered[oldRow];
+    if(!(record)){
+        record = filtered[0];
+    }
+    for (const col in record) {
+        if(firstColumn){
+            firstColumn = false; 
+            formData+="&"+col+"="+oldID;
+        } else {
+            formData+="&txt"+col+"="+$("#txt"+col).val();
+        }
+    } 
+    return(formData);
+}
+
 function refreshRecord(row){
     firstColumn = true;  
     record = filtered[row];
@@ -365,7 +485,7 @@ function refreshRecord(row){
             // records[row][col] = $("#txt"+`${col}`).val();
         }
     } 
-    alert('Record Refreshed!');
+    //alert('Record Refreshed!');
 }
 function backfillRecord(row,id){
     // Scroll Through Records 
@@ -373,50 +493,47 @@ function backfillRecord(row,id){
     for (var r=0;r<records.length;++r) {
         // Check each first col against id 
         firstColumn = true; 
-        for (const col in records[r]) {
+        for (col in records[r]) {
             if(firstColumn){
+                firstColumn = false; 
                 if(records[r][col]===id) {
                     recordFound = true;  
+                    alert(records[r][col] +"="+id);
                 } else {
-                    exit;
+                    continue;
                 }
             } else {
-               record[r][col] = $("#txt"+`${col}`).val();
-           }
+               if(recordFound){
+                    records[r][col] = $("#txt"+`${col}`).val();
+                    alert($("#txt"+`${col}`).val());
+               }
+            }
        }
        if(recordFound){
-           exit;
+           break;
        }
     }
     alert('Record Backfilled!');
 }
 function insertRecord(row,id){
     if(confirm("Insert record ?")) {
-    var recordData =  $("form").serialize();
-    // Line added to ensure filter is passed back to page
-    //alert(recordData);
-    //$.ajaxSetup({ dataType: "json" });
-    $.ajax({
-        type: "GET",
-        url: "{{$insertURL}}",
-        data: recordData, 
-        contentType: 'application/x-www-form-urlencoded',
-        dataType: "json",
-        success: function(data){
-            records[row] = records[0];
-            //records[row][indexField] = id;
-            //refreshRecord(row);
-            displayRecords; // Remove Data from local array
-            //alert('Record Inserted!');
-        }, 
-        fail: function(responseTxt, statusTxt, xhr){
-            console.log(responseText);
-            alert('Record NOT Inserted!');
-        },
-        error: function(e) {
-            console.log(e.responseText);
-        }
-    });
+        $.ajax({
+            type: "POST",
+            url: "{{$insertURL}}",
+            data: dataRecord(), 
+            contentType: 'application/x-www-form-urlencoded',
+            dataType: "json",
+            success: function(data){
+                selectRecords();
+            }, 
+            fail: function(responseTxt, statusTxt, xhr){
+                console.log(responseText);
+                alert('Record NOT Inserted!');
+            },
+            error: function(e) {
+                console.log(e.responseText);
+            }
+        });
     }
 };
 function deleteRecord(row,id){
@@ -434,6 +551,7 @@ function deleteRecord(row,id){
         success: function(data){
             removeRecord(row); // Remove Data from local array
             displayRecords();
+            hideForm();
             //alert('Record Deleted!');
         }, 
         fail: function(responseTxt, statusTxt, xhr){
@@ -531,9 +649,11 @@ function Alist(field,options,value) {
 // Little pair of functions to create and work a Combo class 
 function Combo(field,options,value) {
     var item, opts = {};
+    var btnWidth = 5;
+    var fldWidth = $("#qry"+field).width()+btnWidth;
     if(typeof(value) == "undefined"){value='';}
-    var result='<input class="Combo" type="text" id="txt'+field+'" name="txt'+field+'" value="'+value+'" onchange="recordChanged = true;"/>'
-        +'<input class="Combo" type="button" id="btn'+field+'" value="V" onclick="oCombo(this);" />'
+    var result='<input class="Combo" type="text" id="txt'+field+'" name="txt'+field+'" value="'+value+'" onchange="recordChanged = true;" width="'+fldWidth+'px"/>'
+        +'<input class="Combo" type="button" id="btn'+field+'" value="v" onclick="oCombo(this);" width="'+btnWidth+'px" />'
         +'<select class="Combo"id="lst'+field+'" onchange="oCombo(this);" style="display:none;">';	
     opts = options;
     for (index = 0; index < opts.length; ++index) {
@@ -545,6 +665,7 @@ function Combo(field,options,value) {
             result+="<option>"+fld+"</option>";
     }		   
     result+='</select>';
+    //$("#txt"+field).width($("#qry"+field).width()-$("#btn"+field).width());
     return(result);
 }
 function oCombo(obj) {
@@ -552,10 +673,12 @@ function oCombo(obj) {
     btn = "#btn"+$obj.substr(3);
     txt = "#txt"+$obj.substr(3);
     lst = "#lst"+$obj.substr(3);
+    qry = "#qry"+$obj.substr(3);
     // Which object called the function?
     if(obj.id.substr(0,3) === 'btn'){
-        $(btn).height($(txt).height());
-        $(lst).width($(txt).width()+$(btn).width()+2);
+        $(btn).height($(txt).height()-2);
+        //$(lst).width($(txt).width()+$(btn).width()+2);
+        $(lst).width($(qry).width()+$(btn).width()+2);
         $(lst).children().height($(txt).height());
         $(lst).show();
         $val = $(txt).val();
@@ -565,8 +688,9 @@ function oCombo(obj) {
         $(btn).hide();
     }
     if(obj.id.substr(0,3) === 'lst'){
-        $(btn).height($(lst).height());
+        $(btn).height($(lst).height()-2);
         //$(txt).width($(lst).width()-$(btn).width());
+        $(txt).width($(qry).width()-$(btn).width());
         $(txt).show();
         $val = $(lst).val();
         $(txt).val($val);

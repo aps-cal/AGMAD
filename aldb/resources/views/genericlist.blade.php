@@ -4,22 +4,22 @@
     <h3>{{$pageTitle}}</h3>
 {{ Form::open(array($pageURL)) }}
     <div>
+    @if($years!=null)
     Pre-Sessional Year  <select name="Year" id="Year" class="Filter" onchange="this.form.submit();">
     @foreach($years as $y)<option @if($year == $y->Year) Selected @endif >{{$y->Year}}</option>
     @endforeach
     </select>  &nbsp; 
-    Academic Year  <select name="Academic_Year" id="Academic_Year" class="Filter" onchange="this.form.submit();">
-    @foreach($acadYears as $a)<option @if($acadYear == $a->Academic_Year) Selected @endif >{{$a->Academic_Year}}</option>
-    @endforeach
-    </select>  &nbsp; 
-    Phase No <select name="Phase_No" id="Phase_No" class="Filter" onchange="this.form.submit();">
+    @endif
+    @if($phases!=null)
+    Phase <select name="Phase" id="Phase_No" class="Filter" onchange="this.form.submit();">
     @foreach($phases as $p)<option @if($phase == $p->Phase_No) Selected @endif >{{$p->Phase_No}}</option>
     @endforeach
     </select>
+    @endif
     Records: <span id="RecordCount"></span>
     </div>
     <div>
-        <table >
+        <table class="striped">
             <thead id="Heading" style="height:50px; ">
                 
             </thead>
@@ -43,17 +43,58 @@
 <script>
 //Load variables and arrays
 var id = null;
-var records = <?php echo json_encode($records, JSON_OBJECT_AS_ARRAY); ?>;
-var filtered = records;
+var records = []; <?php //echo json_encode($records, JSON_OBJECT_AS_ARRAY); ?>;
+var filter = []; // Used for record filter and edit options
+var filtered = []; //records;
 // Launch when document ready 
 $(document).ready(function(){
+    selectRecords();
+    /*
     displayHeaders();
     displayFilters();
     loadFilters();
     displayRecords();
-    //displayFooter();
+    //displayFooter();*/
 });   
-
+function selectRecords() {
+    var formData =  $("form").serialize();
+    $.ajaxSetup({
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
+    });  
+    //alert(formData);
+    $("#Records").html("<H4> &nbsp; Loading Data ... Please Wait &nbsp; </h4>");
+    $.ajax({
+        method: 'POST',
+        url: "{{$selectURL}}",
+        data: formData,
+        dataType: 'json',
+        crossDomain: false,
+        timeout: 0,
+        jsonp: 'data',
+        jsonpCallback: 'data',
+        //xhrFields: {// If you want to carry over the SSO token
+        //    withCredentials: true 
+        //},
+        success: function(data){  
+            records =  data.records;
+            //filtered = records;
+            //console.log(records);
+            //alert(records[2]['RowID']);
+            displayHeaders();
+            displayFilters();
+            filterRecords();
+            loadFilters();
+         //   clearFilters();
+            //displayRecords(); 
+        }, 
+        fail: function(responseTxt, statusTxt, xhr){
+            if(statusTxt === "success")
+                alert("External content loaded successfully!");
+            if(statusTxt === "error")
+                alert("Error: " + xhr.status + ": " + xhr.statusText);
+        }
+    });
+};
 function getFields(){
     fields = records[0].getOwnPropertyNames();
     alert(fields[0]);
@@ -72,13 +113,13 @@ function displayFilters(){
     var record = records[0];
     html=$("#Heading").html()+"<tr><td><input Name=\"id\" id=\"id\" type=\"radio\" value=\"\" onclick=\"selectRecord('');\"></td>";  
     for (const col in record) {
-        html=html+"<td><select class=\"filter\" name=\""+`${col}`+"\" id=\""+`${col}`+"\" onChange=\"filterRecords();\">"
+        html=html+"<td><select class=\"filter\" name=\"qry"+`${col}`+"\" id=\"qry"+`${col}`+"\" onChange=\"filterRecords();\">"
             +"<option></option></select></td>";
     }  
     html=html+"</tr>";
     $("#Heading").html(html);
 }
-function displayRecords(){
+/*function displayRecords(){
     var html = "";  
     $("#RecordCount").html(filtered.length);
     for (var row=0;row<filtered.length;++row) {   
@@ -87,7 +128,9 @@ function displayRecords(){
         firstColumn = true;    
         for (const col in record) {
             if(firstColumn){
-                html=html+"<td><input Name=\"id\" id=\"id\" type=\"radio\" value=\""+`${record[col]}`+"\" onclick=\"selectRecord('"+`${record[col]}`+"');\"></td>";
+                html=html+"<td><input Name=\"id\" id=\"id\" type=\"radio\" value=\""+`${record[col]}`+"\" "
+                    
+                 +"onclick=\"selectRecord(this,'"+`${record[col]}`+"');\"></td>";
                 firstColumn = false;    
             }
             html=html+"<td nowrap>"+`${record[col]}`+"</td>";
@@ -96,11 +139,52 @@ function displayRecords(){
     }
     $("#Records").html(html);
 }
+function xreorder(field){
+    // Function needs to be run twice as otherwise previous sort is reversed
+    records = records.sort(function(a,b){
+        return(a[field]  > b[field]?1:-1);
+    });
+    records = records.sort(function(a,b){
+        return(a[field]  > b[field]?1:-1);
+    });
+    displayRecords();
+}
+*/
 
-function selectRecord(id){
-    if(id!=''){
-        alert("Record: "+id);
+function displayRecords(){
+    var html = "";  
+    $("#RecordCount").html(filtered.length);
+    for (var row=0;row<filtered.length;++row) {  
+        html=html+displayRecord(row);
     }
+    $("#Records").html(html);
+    //addRecord();
+}
+function displayRecord(row){
+    html=""; 
+    firstColumn = true;  
+    record = filtered[row];
+    for (const col in record) {
+        if(firstColumn){
+            html=html+"<tr id=\"Record-"+`${record[col]}`+"\">";
+            html=html+"<td><input Name=\""+`${col}`+"\" type=\"radio\" value=\""+`${record[col]}`+"\" "
+            +"onclick=\"selectRecord(this,'"+`${record[col]}`+"');\"></td>";
+            //+"onclick=\"/*if(!recordChanged){ */editRecord("+row+",'"+`${record[col]}`+"');/*}*/\"></td>";
+            firstColumn = false;    
+        } /*else {*/
+            //html=html+"<td nowrap>"+`${record[col]}`+"</td>";
+            val = (record[col]==null?'':record[col]);
+            html=html+"<td nowrap>"+`${val}`+"</td>";
+        /*}*/
+    }   
+    html=html+"<td></td>";
+    html=html+"</tr>";   
+    return(html);
+}
+
+function selectRecord(obj,id){
+    $(".Selected").removeClass('Selected');
+    $(obj).parent().parent().addClass('Selected'); 
 }
 function loadFilters(){
     // Load Filter Dropdowns 
@@ -110,17 +194,16 @@ function loadFilters(){
         filter[col] = '';
         filter[col+'s'] = distinctlist(filtered,col);
         $html = aOptions(filter[col+'s'],filter[col]);
-        $("#"+col).empty().append($html).val(filter[col]);
+        $("#qry"+col).empty().append($html).val(filter[col]);
     }
 }
-
 function reorder(field){
     // Function needs to be run twice as otherwise previous sort is reversed
     filtered = filtered.sort(function(a,b){
-        return(a[field]  > b[field]?1:-1);
+        return(a[field]>b[field]?1:-1);
     });
     filtered = filtered.sort(function(a,b){
-        return(a[field]  > b[field]?1:-1);
+        return(a[field]>b[field]?1:-1);
     });
     displayRecords();
 }
@@ -128,15 +211,14 @@ function reorder(field){
 function clearFilter(){
     var record = records[0]; 
     for (const col in record) {
-        $("#"+col).val('');
+        $("#qry"+col).val('');
     }
     filtered = records;
     displayRecords();
 }
-
+/*
 function filterRecords(){
     var record = records[0]; 
-    var filter = [];
     var criteria = 'true';
     for (const col in record) {
         filter[col] = $("#"+col).val();
@@ -148,21 +230,35 @@ function filterRecords(){
     }); 
     displayRecords();
 }
-
-function reorder(field){
-    // Function needs to be run twice as otherwise previous sort is reversed
-    records = records.sort(function(a,b){
-        return(a[field]  > b[field]?1:-1);
-    });
-    records = records.sort(function(a,b){
-        return(a[field]  > b[field]?1:-1);
-    });
+*/
+function filterRecords(){
+    var record = records[0]; 
+    var criteria = 'true';
+    var firstColumn = true;  
+    for (const col in record) {
+      //  if(firstColumn){
+      //      firstColumn = false;  
+      //  } else {
+            filter[col] = $("#qry"+col).val();
+            criteria = criteria + (filter[col]!==''?
+            (filter[col]==='[blank]'?
+            " && (el."+col+"===null || el."+col+"==='' ) ":
+            " && el."+col+"==='"+filter[col]+"'"):
+            "");
+      //  }
+    }   
+    //alert(criteria);
+    filtered = records.filter(function(el){
+        return(eval(criteria));
+    }); 
     displayRecords();
 }
+
 function aOptions(opts,value) { // Uses a simple array of values
     var result = '<option/>';
     for (var index = 0; index < opts.length; ++index) {
-            result+="<option>"+opts[index]+"</option>";
+        val = (opts[index]==null?'[blank]':opts[index]);
+        result+="<option>"+val+"</option>";
     }
     return(result);
 }

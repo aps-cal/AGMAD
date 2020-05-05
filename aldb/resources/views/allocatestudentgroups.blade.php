@@ -4,27 +4,22 @@
     <h3>Allocate Students</h3>
 {{ Form::open(array($pageURL)) }}
     <div id="Request">
-    
-    
-
-    <table  width="400px" class="Striped">
+   <table  width="400px" class="Striped">
+   <thead>
         <tr>
-            <th colspan="3"><input name="Group_No" id="Group_No" value="{{$group}}" style="width:20px;" />
-           
+            <th colspan="3"><input name="Group_No" id="Group_No" value="{{$group}}" style="width:20px;" />           
     Year:  
     <select name="Year" id="Year" class="Filter" onchange="this.form.submit();">
     @foreach($years as $y)<option @if($year == $y->Year) Selected @endif >{{$y->Year}}</option>
     @endforeach
     </select>
-
     Phase: 
     <select name="Phase" id="Phase" class="Filter" onchange="this.form.submit();">
     @foreach($phases as $p)<option @if($phase == $p->Phase_No) Selected @endif >{{$p->Phase_No}}</option>
     @endforeach          
     </select>
             </th>
-            <th colspan="2">
-    
+            <th colspan="2"> 
             </th>
         </tr>
         <tr>
@@ -36,37 +31,42 @@
         </tr>
         <tr>        
         </tr>
-    </table >
+        </thead>
+    <tbody id="GroupList" >
+        
+    </tbody>
+    </table ><!--
     <div style=" max-height:100px; overflow: auto; width:400px">
-        <table id="GroupList" width="400px"  class="Striped"><!--
+        <table id="GroupList" width="400px"  class="Striped">
             @foreach($groups as $g)
             <tr name="Group{{$g->Group_No}}" onclick="selectGroup('{{$g->Group_No}}',this); " @if($group == $g->Group_No) class="selected" @else class="unselected" @endif >
                 <td width="50px">{{$g->Group_No}}</td>
                 <td width="100px"> {{$g->Class_Room}} </td>
                 <td width="200px"> {{$g->LNS_Tutor_ID}} {{$g->LNS_Tutor_Inits}} </td>
                 <td width="200px">{{$g->TBS_Tutor_ID}} {{$g->TBS_Tutor_Inits}}  </td>
-                <td width="50px">0</td>
-                 
+                <td width="50px">0</td>            
             </tr>
-            @endforeach  -->
+            @endforeach 
         </table>
-    </div>
+    </div>-->
+ </table>
         {{ Form::close() }}
 </div>
-<div style="margin:10px; border:2px; border-color:black;"><h6>Students in Group</h6> 
+<div><B style="font-size:larger;">Students in Group</b> <i style="font-size:smaller;">[Click students in selected group to remove them]</i>
 <form name="in_group_students" id="In_group_students" action="/" method="post">
 <input name="inListOrder" type="hidden" id="inListOrder" value="Location" />
 <table data-popout="false" data-wrapper="true"  class="Striped">
 <thead>
 <tr id="Heading">
-    <th id="hd_student_no"><input type="button" value="Univ.ID" onclick="reorderStudents('student_no');" style="width: 100%;" /></th>
-    <th id="hd_surname"><input type="button" value="Family Name" onclick="reorderStudents('surname');" style="width: 100%;" /></th>
+    <th id="hd_student_no"><input type="button" value="Student_No" onclick="reorderStudents('student_no');" style="width: 100%;" /></th>
+    <th id="hd_surname"><input type="button" value="Surname" onclick="reorderStudents('surname');" style="width: 100%;" /></th>
     <th id="hd_first_name"><input type="button" value="First Name" onclick="reorderStudents('first_name');" style="width: 100%;" /></th>
     <th id="hd_gender"><input type="button" value="Gender" onclick="reorderStudents('gender');" style="width: 100%;" /></th>
     <th id="hd_nationality"><input type="button" value="Nationality" onclick="reorderStudents('nationality');" style="width: 100%;" /></th>
-    <th id="hd_dept_code"><input type="button" value="Department" onclick="reorderStudents('dept_code');" style="width: 100%;" /></th>
+    <th id="hd_ielts"><input type="button" value="IELTS" onclick="reorderStudents('ielts');" style="width: 100%;" /></th>
+    <th id="hd_department"><input type="button" value="Department" onclick="reorderStudents('department');" style="width: 100%;" /></th>
     <th id="hd_course"><input type="button" value="Course" onclick="reorderStudents('course');" style="width: 100%;" /></th>
-    <th id="hd_ielts"><input type="button" value="Results" onclick="reorderStudents('ielts');" style="width: 100%;" /></th>
+  
 </tr><!-- There is no need to filter the students in a group
 <tr>
     <td><select class="Filter" name="UnivID" id="inUnivID">
@@ -95,16 +95,19 @@
     </select></td>
 </tr>-->
 </thead>
+<tbody id="in_group_students" style="max-height: 200px; overflow: auto; width:800px;">
+</tbody>
 </table>
+<!--
 <div class="alert alert-success" style="display:none"> </div>
 <div style="max-height: 200px; overflow: auto; ">
     <table id="in_group_students" width="800px"  class="Striped">
     </table>
-</div>
+</div>-->
 </form>
 </div>
 
-<div style="margin:10px; border:2px; border-color:black;"><h6>Unplaced Students </h6> 
+<div><B style="font-size:larger;">Unplaced Students </B> <i style="font-size:smaller;">[Click students to move to the currently selected]</i>
 <form name="No_group_students" id="No_group_students" action="/" method="post">
 <input name="NoListOrder" type="hidden" id="NoListOrder" value="Location" />
 <table data-popout="false" data-wrapper="true"  class="Striped">
@@ -115,15 +118,16 @@
     <th><input type="button" value="First_Name" onclick="reorderStudents('first_name');" style="width: 100%;" /></th>
     <th><input type="button" value="Gender" onclick="reorderStudents('gender');" style="width: 100%;" /></th>
     <th><input type="button" value="Nationality" onclick="reorderStudents('nationality');" style="width: 100%;" /></th>
-    <th><input type="button" value="Department" onclick="reorderStudents('dept_code');" style="width: 100%;" /></th>
+    <th><input type="button" value="IELTS" onclick="reorderStudents('ielts');" style="width: 100%;" /></th>
+    <th><input type="button" value="Department" onclick="reorderStudents('department');" style="width: 100%;" /></th>
     <th><input type="button" value="Course" onclick="reorderStudents('course');" style="width: 100%;" /></th>
-    <th><input type="button" value="Results" onclick="reorderStudents('ielts');" style="width: 100%;" /></th>
+   
 </tr>
 <tr>
     <td><select class="nofilter" name="noStudent_No" id="noStudent_No" onChange="filterNoGroup();">
         <option></option>
         </select></td>
-        <td><select class="nofilter" name="noSurname" id="noSurname" onChange="filterNoGroup();">
+    <td><select class="nofilter" name="noSurname" id="noSurname" onChange="filterNoGroup();">
         <option></option>
         </select></td>
     <td><select class="nofilter" name="noFirst_Name" id="noFirst_Name" onChange="filterNoGroup();">
@@ -135,23 +139,26 @@
     <td><select class="Filter" name="noNationality" id="noNationality" onChange="filterNoGroup();">
     <option></option>
     </select></td>
+    <td><select class="Filter" name="noIELTS" id="noIELTS" onChange="filterNoGroup();">
+    <option></option>
+    </select></td>
     <td><select class="Filter" name="noDepartment" id="noDepartment" onChange="filterNoGroup();">
     <option></option>
     </select></td>
     <td><select class="Filter" name="noCourse" id="noCourse" onChange="filterNoGroup();">
     <option></option>
     </select></td>
-    <td><select class="Filter" name="noResults" id="noResults" onChange="filterNoGroup();">
-    <option></option>
-    </select></td>
+    
 </tr>
 </thead>
-</table>
+<tbody id="no_group_students" style="height: 200px; overflow: auto;" >
+</tbody>
+</table><!--
 <div style=" height: 200px; overflow: auto; ">
     <table id="no_group_students" width="800px" class="Striped">
             
     </table>
-</div>
+</div>-->
 </form>
 <div id="display"></div>    
 </div>
@@ -173,21 +180,6 @@ $(document).ready(function(){
     }
     groupStudents();
     matchWidths();
-    /*
-    groupListCount();   // Count Students in each group
-    displayGroups();    // Display Groups
-    reorderStudents('student_no'); // Order Students by Student Number 
-        
-        
-    filterInGroup();
-    //displayStudents(inGroup,"#in_group_students");
-    //displayInGroup();
-    filterNoGroup();
-    //displayStudents(noGroup,"#no_group_students");
-    //displayNoGroup();
-    //loadinfilters();  // There is no need to filter students in a group
-    loadnofilters();    // Filter Students not in a group to ease selection
-        */
 });  
 
 function matchWidths(){
@@ -196,9 +188,9 @@ function matchWidths(){
     $("#no_first_name").width($("#hd_first_name").width());
     $("#no_gender").width($("#hd_gender").width());
     $("#no_nationality").width($("#hd_nationality").width());
-    $("#no_dept_code").width($("#hd_department").width());
+    $("#no_department").width($("#hd_department").width());
     $("#no_course").width($("#hd_course").width());
-    $("#no_ielts").width($("#hd_ielts").style.width());
+    $("#no_ielts").width($("#hd_ielts").width());
 }
 
 
@@ -323,7 +315,7 @@ function filterInGroup(){
     group = $("#Group_No").val();
     if(group != ''){
         inGroup = students.filter(function(el){
-            return (el.group_no === group && el.phase_no === phase);
+            return (el.group_no === group /*&& el.phase_no === phase*/);
         });
     }  
     displayInGroup();
@@ -332,29 +324,28 @@ function filterInGroup(){
 function filterNoGroup(){
     phase = $("#Phase").val();
     studentNo = $("#noStudent_No").val();
-    familyName = $("#noSurname").val();
+    surname = $("#noSurname").val();
     firstName = $("#noFirst_Name").val();
     gender = $("#noGender").val();
     department = $("#noDepartment").val();
     nationality = $("#noNationality").val();
     course = $("#noCourse").val();
-    //alert(nationality);
+    ielts = $("#noIELTS").val();
     noGroup = students.filter(function(el){
         return ((el.group_no === '' || el.group_no === null)
-            && el.phase_no === phase 
+            /*&& el.phase_no === phase */
             && (studentNo !== ''? el.student_no === studentNo : true)
-            && (familyName !== ''? el.surname === familyName : true)
+            && (surname !== ''? el.surname === surname : true)
             && (firstName !== ''? el.first_name === firstName : true)
             && (gender !== ''? el.gender === gender : true)
             && (department !== ''? (el.department === null?'':el.department) === department : true)
             && (nationality !== ''? el.nationality === nationality : true)
             && (course !== ''? el.course === course : true)
+            && (ielts !== ''? el.ielts === ielts : true)
         );
     });
-    //noGroup = students;
     displayNoGroup();
 }
-
 /*
 <td><select class="nofilter" name="noUnivID" id="noUnivID" onChange="filterNoGroup();">
         <option></option>
@@ -409,7 +400,6 @@ function updateInGroupStudents(count){
     group = $("#Group_No").val();
     var groupIndex = groupListIndex(group);
     if(groupIndex != null){
-        //alert(groups[groupIndex]["Students"]);
         groups[groupIndex]["Students"] = count;
     } 
     displayGroups();
@@ -420,6 +410,15 @@ function displayInGroup(){
     var count = 0;
     for (var i=0; i<inGroup.length;++i) {
         html=html + "<tr id=\"i"+inGroup[i]["student_no"]+"\" onclick=\"removeGroup('"+inGroup[i]["student_no"]+"');\" >"
+            +'<td>'+inGroup[i]["student_no"]+'</td>'
+            +'<td>'+inGroup[i]["surname"]+'</td>'
+            +'<td>'+inGroup[i]["first_name"]+'</td>'
+            +'<td>'+(inGroup[i]["gender"]===null?'':inGroup[i]["gender"])+'</td>'
+            +'<td>'+(inGroup[i]["nationality"]===null?'':inGroup[i]["nationality"])+'</td>'
+            +'<td>'+(inGroup[i]["ielts"]===null?'':inGroup[i]["ielts"])+'</td>'
+            +'<td nowrap>'+(inGroup[i]["department"]===null?'':inGroup[i]["department"])+'</td>'
+            +'<td nowrap>'+(inGroup[i]["course"]===null?'':inGroup[i]["course"])+'</td>'
+/*
             +'<td width="50px">'+inGroup[i]["student_no"]+'</td>'
             +'<td width="100px">'+inGroup[i]["surname"]+'</td>'
             +'<td width="100px">'+inGroup[i]["first_name"]+'</td>'
@@ -428,15 +427,16 @@ function displayInGroup(){
             +'<td width="100px">'+(inGroup[i]["department"]===null?'':inGroup[i]["department"])+'</td>'
             +'<td width="200px" nowrap>'+(inGroup[i]["course"]===null?'':inGroup[i]["course"])+'</td>'
             +'<td width="350px" nowrap>'+(inGroup[i]["ielts"]===null?'':inGroup[i]["ielts"])+'</td>'
-            +'<td width="100px">'+(inGroup[i]["phase_no"]===null?'':inGroup[i]["phase_no"])+'</td>'
-            +'<td width="100px">'+(inGroup[i]["group_no"]===null?'':inGroup[i]["group_no"])+'</td>'
+           // +'<td width="100px">'+(inGroup[i]["phase_no"]===null?'':inGroup[i]["phase_no"])+'</td>'
+           // +'<td width="100px">'+(inGroup[i]["group_no"]===null?'':inGroup[i]["group_no"])+'</td>'*/
             +'</tr>';
         count++;
     }
     $("#in_group_students").html(html); 
     updateInGroupStudents(count);
 }
-/*function displayNoGroup(){
+/*
+function displayNoGroup(){
     var html = ""
     for (var i=0; i<noGroup.length;++i) {
         html=html + "<tr id=\"n"+noGroup[i]["student_no"]+"\" onclick=\"addToGroup('"+noGroup[i]["student_no"]+"');\" >"
@@ -454,7 +454,8 @@ function displayInGroup(){
     }
     $("#no_group_students").html(html);
     //alert(noGroup.length);
-} */       
+} 
+*/       
 function displayNoGroup(){
     var html = ""
     var firstRecord = true;
@@ -467,11 +468,12 @@ function displayNoGroup(){
             +'<td id="no_first_name">'+noGroup[i]["first_name"]+'</td>'
             +'<td id="no_gender">'+(noGroup[i]["gender"]===null?'':noGroup[i]["gender"])+'</td>'
             +'<td id="no_nationality">'+(noGroup[i]["nationality"]===null?'':noGroup[i]["nationality"])+'</td>'
+            +'<td id="no_ielts">'+(noGroup[i]["ielts"]===null?'':noGroup[i]["ielts"])+'</td>'
             +'<td id="no_department">'+(noGroup[i]["department"]===null?'':noGroup[i]["department"])+'</td>'
             +'<td id="no_course">'+(noGroup[i]["course"]===null?'':noGroup[i]["course"])+'</td>'
-            +'<td id="no_ielts">'+(noGroup[i]["ielts"]===null?'':noGroup[i]["ielts"])+'</td>'
-            +'<td id="no_phase_no">'+(noGroup[i]["phase_no"]===null?'':noGroup[i]["phase_no"])+'</td>'
-            +'<td id="no_group_no">'+(noGroup[i]["group_no"]===null?'':noGroup[i]["group_no"])+'</td>'
+          
+         //   +'<td id="no_phase_no">'+(noGroup[i]["phase_no"]===null?'':noGroup[i]["phase_no"])+'</td>'
+         //   +'<td id="no_group_no">'+(noGroup[i]["group_no"]===null?'':noGroup[i]["group_no"])+'</td>'
             +'</tr>';
     /*
      html=html + "<tr id=\"n"+noGroup[i]["student_no"]+"\" onclick=\"addToGroup('"+noGroup[i]["student_no"]+"');\" >"
@@ -493,11 +495,11 @@ function displayNoGroup(){
             +'<td>'+noGroup[i]["first_name"]+'</td>'
             +'<td>'+(noGroup[i]["gender"]===null?'':noGroup[i]["gender"])+'</td>'
             +'<td>'+(noGroup[i]["nationality"]===null?'':noGroup[i]["nationality"])+'</td>'
+            +'<td>'+(noGroup[i]["ielts"]===null?'':noGroup[i]["ielts"])+'</td>'
             +'<td>'+(noGroup[i]["department"]===null?'':noGroup[i]["department"])+'</td>'
             +'<td>'+(noGroup[i]["course"]===null?'':noGroup[i]["course"])+'</td>'
-            +'<td>'+(noGroup[i]["ielts"]===null?'':noGroup[i]["ielts"])+'</td>'
-            +'<td>'+(noGroup[i]["phase_no"]===null?'':noGroup[i]["phase_no"])+'</td>'
-            +'<td>'+(noGroup[i]["group_no"]===null?'':noGroup[i]["group_no"])+'</td>'
+             // +'<td>'+(noGroup[i]["phase_no"]===null?'':noGroup[i]["phase_no"])+'</td>'
+           // +'<td>'+(noGroup[i]["group_no"]===null?'':noGroup[i]["group_no"])+'</td>'
             +'</tr>';
         }
     }
@@ -505,8 +507,6 @@ function displayNoGroup(){
     //alert(noGroup.length);
 }
 
-
-   
 function groupListIndex(group){
     var index = null;
     for (var i=0; i<groups.length;++i) {
@@ -519,54 +519,21 @@ function groupListIndex(group){
 }
 
 function addToGroup(student_no){
-    //alert(SaveGroup(student_no,$("#Group_No").val()));
-    
-    //if(
-    SaveGroup(student_no,$("#Group_No").val());//){
-    //alert(data['Result']);
-        i = students.findIndex(item => item.student_no === student_no);
-        students[i].group_no = $("#Group_No").val();
-        filterInGroup();
-        //displayInGroup();
-        filterNoGroup();
-        //displayNoGroup();
-    //} else {
-    //    alert('Student '+student_no+' - Update Failed');
-    //}
-    //alert (student_no);
+    SaveGroup(student_no,$("#Group_No").val());
+    i = students.findIndex(item => item.student_no === student_no);
+    students[i].group_no = $("#Group_No").val();
+    filterInGroup();
+    filterNoGroup();
 }
 function removeGroup(student_no){ 
-    //if(
-    SaveGroup(student_no,null);//){
-      //alert(data['Result']);
-        i = students.findIndex(item => item.student_no === student_no);
-        students[i].group_no = '';
-        filterInGroup();
-        displayInGroup();
-        filterNoGroup();
-        displayNoGroup();
-    //} else {
-    //    alert('Student '+student_no+' - Update Failed');
-    //}
-    //alert (student_no);
-}
-
-/*
-$("#in_group-students.tr").click(function(){
-    alert('#in_group-students.tr'+this.id);
-});
-
-$("select.nofilter").change(function() {
-    alert("select.nofilter"+'Changed');
+    SaveGroup(student_no,null);
+    i = students.findIndex(item => item.student_no === student_no);
+    students[i].group_no = '';
+    filterInGroup();
+    displayInGroup();
     filterNoGroup();
-});
-
-*/
-
-
-
-      
-
+    displayNoGroup();
+}
 
 function aOptions(opts,value) { // Uses a simple array of values
     var result = '<option/>';
@@ -586,23 +553,20 @@ function distinctlist(studentlist,field){
             unique[studentlist[i][field]] = 1;
         }
     }
-    //alert(distinct.sort());
     return (distinct.sort());
-    //var d = document.getElementById("d");
-    //d.innerHTML = "" + distinct;
 }
 
 function loadnofilters(){
     // Load Filter Dropdowns 
     var nofilter = [];
-    nofilter['UnivID'] = '';
-    nofilter['UnivIDs'] = distinctlist(noGroup,'student_no');
-    $html = aOptions(nofilter['UnivIDs'],nofilter['UnivID']);
-    $("#noUnivID").empty().append($html).val(nofilter['UnivID']);
-    nofilter['Family_Name'] = '';
-    nofilter['Family_Names'] = distinctlist(noGroup,'surname');
-    $html = aOptions(nofilter['Family_Names'],nofilter['Family_Name']);
-    $("#noFamily_Name").empty().append($html).val(nofilter['Family_Name']);
+    nofilter['Student_No'] = '';
+    nofilter['Student_Nos'] = distinctlist(noGroup,'student_no');
+    $html = aOptions(nofilter['Student_Nos'],nofilter['Student_No']);
+    $("#noStudent_No").empty().append($html).val(nofilter['Student_No']);
+    nofilter['Surname'] = '';
+    nofilter['Surnames'] = distinctlist(noGroup,'surname');
+    $html = aOptions(nofilter['Surnames'],nofilter['Surname']);
+    $("#noSurname").empty().append($html).val(nofilter['Surname']);
     nofilter['First_Name'] = '';
     nofilter['First_Names'] = distinctlist(noGroup,'first_name');
     $html = aOptions(nofilter['First_Names'],nofilter['First_Name']);
@@ -615,6 +579,10 @@ function loadnofilters(){
     nofilter['Nationalities'] = distinctlist(noGroup,'nationality');
     $html = aOptions(nofilter['Nationalities'],nofilter['Nationality']);
     $("#noNationality").empty().append($html).val(nofilter['Nationality']);
+    nofilter['IELTS'] = '';
+    nofilter['IELTSs'] = distinctlist(noGroup,'ielts');
+    $html = aOptions(nofilter['IELTSs'],nofilter['IELTS']);
+    $("#noIELTS").empty().append($html).val(nofilter['IELTS']);
     nofilter['Department'] = '';
     nofilter['Departments'] = distinctlist(noGroup,'department');
     $html = aOptions(nofilter['Departments'],nofilter['Department']);
@@ -623,11 +591,7 @@ function loadnofilters(){
     nofilter['Courses'] = distinctlist(noGroup,'course');
     $html = aOptions(nofilter['Courses'],nofilter['Course']);
     $("#noCourse").empty().append($html).val(nofilter['Course']);
-    nofilter['Result'] = '';
-    nofilter['Results'] = distinctlist(noGroup,'result');
-    $html = aOptions(nofilter['Results'],nofilter['Result']);
-    $("#noResult").empty().append($html).val(nofilter['Result']);
-    //$("#display").html($html);
+    
 }
 
 /* 
